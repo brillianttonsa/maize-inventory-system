@@ -77,7 +77,7 @@ function Home(){
       </section>
 
       {/* Call to Action */}
-      <section className="bg-yellow-200 py-16">
+      <section className="bg-yellow-500 py-16">
         <div className="container mx-auto px-4 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
