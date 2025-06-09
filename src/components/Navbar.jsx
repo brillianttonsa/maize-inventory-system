@@ -1,22 +1,10 @@
 import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
+import { Link } from "react-router-dom"
 import { motion, AnimatePresence } from "framer-motion"
 import {Menu, X  } from "lucide-react"
-import { useAuth } from "../context/AuthContext"
 
 function Navbar (){
   const [isOpen, setIsOpen] = useState(false)
-  // const { isAuthenticated, logout, currentUser } = useAuth()
-  const navigate = useNavigate()
-  const currentUser = "Tonsa"
-  function isAuthenticated(){
-    return true
-  }
-
-  const handleLogout = () => {
-    logout()
-    navigate("/")
-  }
 
   return (
     <nav className="bg-white shadow-md">
@@ -25,7 +13,7 @@ function Navbar (){
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
               <Link to="/" className="text-xl font-bold text-yellow-600">
-                MaizeTrack
+                MaizeTrack AI
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -35,14 +23,7 @@ function Navbar (){
               >
                 Home
               </Link>
-              {isAuthenticated() && (
-                <Link
-                  to="/dashboard"
-                  className="border-transparent text-gray-500 hover:border-yellow-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  Dashboard
-                </Link>
-              )}
+              
               <Link
                 to="/about"
                 className="border-transparent text-gray-500 hover:border-yellow-500 hover:text-gray-700 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
@@ -58,24 +39,6 @@ function Navbar (){
             </div>
           </div>
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {isAuthenticated() ? (
-              <div className="flex items-center space-x-4">
-                <span className="text-sm text-gray-700">
-                  Welcome, <span className="font-medium">{currentUser?.username}</span>
-                  {currentUser?.role === "admin" && (
-                    <span className="ml-1 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">Admin</span>
-                  )}
-                </span>
-                <motion.button
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  onClick={handleLogout}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded-md text-sm font-medium hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 cursor-pointer"
-                >
-                  Logout
-                </motion.button>
-              </div>
-            ) : (
               <div className="flex items-center space-x-4">
                 <Link to="/login">
                   <motion.button
@@ -96,7 +59,6 @@ function Navbar (){
                   </motion.button>
                 </Link>
               </div>
-            )}
           </div>
           <div className="-mr-2 flex items-center sm:hidden">
             <button
@@ -129,14 +91,6 @@ function Navbar (){
               >
                 Home
               </Link>
-              {isAuthenticated() && (
-                <Link
-                  to="/dashboard"
-                  className="block pl-3 pr-4 py-2 text-center border-l-4 border-transparent font-medium text-gray-600 hover:bg-gray-50 hover:border-yellow-500 hover:text-gray-800"
-                >
-                  Dashboard
-                </Link>
-              )}
               <Link
                 to="/about"
                 className="block pl-3 pr-4 py-2 text-center border-l-4 border-transparent font-medium text-gray-600 hover:bg-gray-50 hover:border-yellow-500 hover:text-gray-800"
@@ -149,14 +103,6 @@ function Navbar (){
               >
                 Contact
               </Link>
-              {isAuthenticated() ? (
-                <button
-                  onClick={handleLogout}
-                  className="block w-full text-center pl-3 pr-4 py-2 border-l-4 border-transparent font-medium text-gray-600 hover:bg-gray-50 cursor-pointer hover:border-yellow-500 hover:text-gray-800"
-                >
-                  Logout
-                </button>
-              ) : (
                 <>
                   <Link
                     to="/login"
@@ -171,7 +117,6 @@ function Navbar (){
                     Sign Up
                   </Link>
                 </>
-              )}
             </div>
           </motion.div>
         )}
