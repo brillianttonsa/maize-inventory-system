@@ -1,6 +1,7 @@
 import { motion } from "framer-motion"
 import FeaturesAbout from "../components/utils/FeaturesAbout"
 import Navbar from "../components/Navbar"
+import { Link } from "react-router-dom"
 
 function About(){
   return (
@@ -97,22 +98,13 @@ function About(){
                 Join for better optimization of your operations ith MaizeTrackAI.
               </p>
               <div className="flex justify-center space-x-4">
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  href="/signup"
-                  className="bg-white text-yellow-600 px-8 py-3 rounded-lg font-medium shadow-md hover:bg-gray-100 transition-colors"
-                >
-                  Sign Up Now
-                </motion.a>
-                <motion.a
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                  href="/contact"
-                  className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors"
-                >
+                
+                <Link to="/signup" className="bg-white text-yellow-600 px-8 py-3 rounded-lg font-medium shadow-md hover:bg-gray-100 transition-colors">
+                  Sign Up Now  
+                </Link>
+                <Link to="/contact" className="bg-transparent border-2 border-white text-white px-8 py-3 rounded-lg font-medium hover:bg-white/10 transition-colors">
                   Contact Us
-                </motion.a>
+                </Link>
               </div>
             </motion.div>
           </div>

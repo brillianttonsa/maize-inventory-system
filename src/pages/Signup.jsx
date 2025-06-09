@@ -103,7 +103,7 @@ function Signup(){
                   type="text"
                   required
                   className="relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 focus:z-10 sm:text-sm"
-                  placeholder="John Doe"
+                  placeholder="Brilliant Tonsa"
                   value={formData.name}
                   onChange={handleChange}
                 />
@@ -119,7 +119,7 @@ function Signup(){
                   type="text"
                   required
                   className="relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 focus:z-10 sm:text-sm"
-                  placeholder="johndoe"
+                  placeholder="brillianttonsa1234"
                   value={formData.username}
                   onChange={handleChange}
                 />
@@ -135,7 +135,7 @@ function Signup(){
                   type="email"
                   required
                   className="relative block w-full px-3 py-3 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-md focus:outline-none focus:ring-yellow-500 focus:border-yellow-500 focus:z-10 sm:text-sm"
-                  placeholder="john@example.com"
+                  placeholder="brillianttonsa.com"
                   value={formData.email}
                   onChange={handleChange}
                 />

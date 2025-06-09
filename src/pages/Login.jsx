@@ -184,7 +184,7 @@ function Login(){
 
             <div className="text-center text-sm">
               <p className="text-gray-600">
-                Default admin account: <span className="font-semibold">admin / admin123</span>
+                {/* Default admin account: <span className="font-semibold">admin / admin123</span> */}
               </p>
             </div>
           </form>
