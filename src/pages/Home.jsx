@@ -12,7 +12,7 @@ function Home(){
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <section className="relative h-[500px] overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/80 to-yellow-800/80 z-10"></div>
+          <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/80 to-yellow-700/80 z-10"></div>
           
           <div className="relative z-20 container mx-auto px-4 h-full flex items-center">
             <motion.div
@@ -67,7 +67,7 @@ function Home(){
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ delay: index * 0.2 }}
+                transition={{ delay: index * 0.1 }}
                 className="bg-white p-6 rounded-xl shadow-md hover:shadow-lg transition-shadow"
               >
                 <div className="text-4xl mb-4">{feature.icon}</div>

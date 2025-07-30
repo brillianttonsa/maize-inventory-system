@@ -64,7 +64,7 @@ function About(){
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-xl sm:text-3xl font-bold mb-6 text-gray-800">Why Choose MaizeTrackAISystem?</h2>
+              <h2 className="text-xl sm:text-3xl font-bold mb-6 text-gray-800">Why Choose MaizeTrackAI System?</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 {FeaturesAbout.map((item, index) => (
                   <motion.div
