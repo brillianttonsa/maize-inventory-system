@@ -22,7 +22,7 @@ const FeaturesAbout = [
     },{
         title: "Role-Based Access for Better Control",
         description: 
-        "Whether you're an admin, supervisor, or floor staff, MaizeTrack AI provides personalized dashboards and tools — ensuring everyone only sees what they need to see."
+        "Whether you're an admin, supervisor, or floor staff, MaizeTrackAI provides personalized dashboards and tools — ensuring everyone only sees what they need to see."
     },{
         title: "Data-Driven Decisions",
         description: 
