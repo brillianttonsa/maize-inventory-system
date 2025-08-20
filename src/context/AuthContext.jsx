@@ -1,5 +1,4 @@
 import { createContext, useState, useContext, useEffect } from "react"
-import axios from "axios"
 
 const AuthContext = createContext()
 
@@ -10,22 +9,20 @@ export function useAuth() {
   }
   return context
 }
+
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem("token") || null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Check if there's a token in localStorage
+    // Load token and user from localStorage on app start
     const storedToken = localStorage.getItem("token")
     const storedUser = localStorage.getItem("user")
 
     if (storedToken && storedUser) {
       setToken(storedToken)
       setCurrentUser(JSON.parse(storedUser))
-
-      // Setting default Authorization header for all axios requests
-      axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`
     }
 
     setLoading(false)
@@ -36,9 +33,6 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem("user", JSON.stringify(user))
     setToken(newToken)
     setCurrentUser(user)
-
-    // Setting default Authorization header for all axios requests
-    axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`
   }
 
   const logout = () => {
@@ -46,15 +40,9 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem("user")
     setToken(null)
     setCurrentUser(null)
-
-    // Removing Authorization header
-    delete axios.defaults.headers.common["Authorization"]
   }
 
-  const isAuthenticated = () => {
-    return !!token
-  }
-
+  const isAuthenticated = () => !!token
 
   const value = {
     currentUser,

@@ -9,9 +9,8 @@ import InventoryTab from "../components/dashboard/InventoryTab"
 import tabs from "../components/utils/DashBoardTabs"
 
 function Dashboard(){
-  // const { currentUser } = useAuth()
+  const { currentUser } = useAuth()
   const [activeTab, setActiveTab] = useState("dashboard")
-  const currentUser = "tonsa"
 
   const renderTabContent = () => {
     switch (activeTab) {

@@ -12,7 +12,7 @@ import TermsPage from "./pages/legal/TermsPage"
 import PrivacyPolicyPage from "./pages/legal/PrivacypolicyPage"
 
 //dashboards pages
-// import Dashboard from "./pages/Dashboard"
+import Dashboard from "./pages/Dashboard"
 
 // protecting routes
 import { AuthProvider } from "./context/AuthContext"
@@ -31,7 +31,7 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword/>}/>
             <Route path="/terms-of-service" element={<TermsPage/>}/>
             <Route path="private-policy" element={<PrivacyPolicyPage/>}/>
-
+            <Route path="/dashboard" element={<Dashboard/>}/>
             {/* <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard/>
