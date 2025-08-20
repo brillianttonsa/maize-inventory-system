@@ -3,8 +3,13 @@ import axios from "axios"
 
 const AuthContext = createContext()
 
-export const useAuth = () => useContext(AuthContext)
-
+export function useAuth() {
+  const context = useContext(AuthContext)
+  if (!context) {
+    throw new Error("useAuth must be used within an AuthProvider")
+  }
+  return context
+}
 export const AuthProvider = ({ children }) => {
   const [currentUser, setCurrentUser] = useState(null)
   const [token, setToken] = useState(localStorage.getItem("token") || null)
@@ -50,9 +55,6 @@ export const AuthProvider = ({ children }) => {
     return !!token
   }
 
-  const isAdmin = () => {
-    return currentUser?.role === "admin"
-  }
 
   const value = {
     currentUser,
@@ -60,7 +62,6 @@ export const AuthProvider = ({ children }) => {
     login,
     logout,
     isAuthenticated,
-    isAdmin,
     loading,
   }
 
