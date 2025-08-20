@@ -59,7 +59,7 @@ function Contact(){
             submitting: false,
             info: { error: false, msg: null },
           })
-        }, 5000)
+        }, 3000)
       }
     } catch (err) {
       setStatus({
@@ -85,7 +85,7 @@ function Contact(){
             >
               <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
               <p className="text-xl max-w-3xl mx-auto">
-                Have questions about MaizeTrackAI? Am here to help. Reach me out.
+                Have questions about MaizeTrackAI? Am here to help.Reach me out.
               </p>
             </motion.div>
           </div>
@@ -102,8 +102,8 @@ function Contact(){
             >
               <h2 className="text-3xl font-bold mb-6 text-gray-800">Get in Touch</h2>
               <p className="text-lg text-gray-600 mb-8">
-                I love to hear from you. Whether you have a question about features, pricing, or anything else, 
-                Am ready to answer all your questions.
+                I would love to hear from you. Whether you have a question about features, pricing, or anything else, 
+                I am ready to answer all your questions.
               </p>
 
               <div className="space-y-6">
@@ -122,73 +122,6 @@ function Contact(){
                   </div>
                 ))}
               </div>
-
-              {/* <div className="space-y-6">
-                <div className="flex items-start">
-                  <div className="bg-yellow-100 p-3 rounded-full mr-4">
-                    <MapPin className="h-6 w-6 text-yellow-600"/>
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800 mb-1">Address</h3>
-                    <p className="text-gray-600">123 Maize Avenue, Flour City, FC 12345</p>
-                  </div>
-                </div>
-              </div>
-
-              <table className="w-full text-left border-collapse">
-                <tbody>
-                  <tr className="border-b transition duration-300 ease-in-out hover:bg-yellow-50 hover:scale-[1.01]">
-                    <td className="p-3 align-top">
-                      <div className="bg-yellow-100 p-3 rounded-full inline-block transition duration-300 hover:rotate-6">
-                        <MapPin className="h-6 w-6 text-yellow-600" />
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-1">Address</h3>
-                      <p className="text-gray-600">Mbezi-Luis</p>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b transition duration-300 ease-in-out hover:bg-yellow-50 hover:scale-[1.01]">
-                    <td className="p-3 align-top">
-                      <div className="bg-yellow-100 p-3 rounded-full inline-block transition duration-300 hover:rotate-6">
-                        <Phone className="h-6 w-6 text-yellow-600" />
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-1">Phone</h3>
-                      <p className="text-gray-600">+255 683 208 698</p>
-                    </td>
-                  </tr>
-
-                  <tr className="border-b transition duration-300 ease-in-out hover:bg-yellow-50 hover:scale-[1.01]">
-                    <td className="p-3 align-top">
-                      <div className="bg-yellow-100 p-3 rounded-full inline-block transition duration-300 hover:rotate-6">
-                        <Mail className="h-6 w-6 text-yellow-600" />
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-1">Email</h3>
-                      <p className="text-gray-600">abdullatifmnyamis@gmail.com</p>
-                    </td>
-                  </tr>
-
-                  <tr className="transition duration-300 ease-in-out hover:bg-yellow-50 hover:scale-[1.01]">
-                    <td className="p-3 align-top">
-                      <div className="bg-yellow-100 p-3 rounded-full inline-block transition duration-300 hover:rotate-6">
-                        <Clock className="h-6 w-6 text-yellow-600" />
-                      </div>
-                    </td>
-                    <td className="p-3">
-                      <h3 className="text-xl font-semibold text-gray-800 mb-1">Time</h3>
-                      <p className="text-gray-600">Monday - Friday: 9:00 AM - 5:00 PM</p>
-                      <p className="text-gray-600">Saturday and Sunday: Closed</p>
-                    </td>
-                  </tr>
-                </tbody>
-              </table> */}
-
-
             </motion.div>
 
             {/* Contact Form */}
@@ -225,7 +158,7 @@ function Contact(){
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      placeholder="John Doe"
+                      placeholder="Brilliant tonsa"
                     />
                   </div>
 
@@ -241,7 +174,7 @@ function Contact(){
                       onChange={handleChange}
                       required
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
-                      placeholder="john@example.com"
+                      placeholder="brillianttonsa@example.com"
                     />
                   </div>
 
@@ -291,12 +224,8 @@ function Contact(){
                 </form>
               </div>
             </motion.div>
-
-            
           </div>
-        </section>
-
-        
+        </section>  
       </div>
     </>
   )

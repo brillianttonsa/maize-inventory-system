@@ -50,7 +50,7 @@ function Signup(){
           username: formData.username,
           email: formData.email,
           password: formData.password,
-      });
+        });
       
       if (response.data.success) {
         navigate("/login", { state: { message: "Registration successful! Please log in." } });
@@ -194,13 +194,13 @@ function Signup(){
             <div className="text-center text-sm">
               <p className="text-gray-600">
                 By signing up, you agree to our{" "}
-                <a href="#" className="font-medium text-yellow-600 hover:text-yellow-500">
+                <Link to="/terms-of-service" className="font-medium text-yellow-600 hover:text-yellow-500">
                   Terms of Service
-                </a>{" "}
+                </Link>{" "}
                 and{" "}
-                <a href="#" className="font-medium text-yellow-600 hover:text-yellow-500">
+                <Link to="/private-policy" className="font-medium text-yellow-600 hover:text-yellow-500">
                   Privacy Policy
-                </a>
+                </Link>
                 .
               </p>
             </div>

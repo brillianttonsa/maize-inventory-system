@@ -14,7 +14,7 @@ function Login(){
   const [error, setError] = useState("")
   const [loading, setLoading] = useState(false)
   const navigate = useNavigate()
-  // const { login } = useAuth()
+  const { login } = useAuth()
 
   const location = useLocation()
   const [successMessage, setSuccessMessage] = useState(location.state?.message || "")
@@ -48,32 +48,11 @@ function Login(){
     setLoading(true)
 
     try {
-      // For demo purposes, we'll bypass the actual API call
-      // and simulate a successful login with the default admin account
-      if (credentials.username === "admin" && credentials.password === "admin123") {
-        const mockResponse = {
-          token: "mock-jwt-token-for-testing",
-          user: {
-            id: 1,
-            username: "admin",
-            role: "admin",
-          },
-        }
-
-        login(mockResponse.token, mockResponse.user)
+      const API = import.meta.env.VITE_API_URL
+      const response = await axios.post(`${API}/auth/login`, credentials)
+      if (response.data.token) {
+        login(response.data.token, response.data.user)
         navigate("/dashboard")
-      } else {
-        // Try actual API login
-        try {
-          const API = import.meta.env.VITE_API_URL
-          const response = await axios.post(`${API}/auth/login`, credentials)
-          if (response.data.token) {
-            login(response.data.token, response.data.user)
-            navigate("/dashboard")
-          }
-        } catch (apiError) {
-          setError("Invalid username or password")
-        }
       }
     } catch (err) {
       setError("An error occurred during login")
@@ -84,7 +63,7 @@ function Login(){
 
   return (
     <>
-        <Navbar/>
+      <Navbar/>
       <div className="min-h-screen bg-gray-50 flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -180,13 +159,7 @@ function Login(){
 
                 {loading ? "Signing in..." : "Sign in"}
               </motion.button>
-            </div>
-
-            <div className="text-center text-sm">
-              <p className="text-gray-600">
-                {/* Default admin account: <span className="font-semibold">admin / admin123</span> */}
-              </p>
-            </div>
+            </div> 
           </form>
         </motion.div>
       </div>
