@@ -2,17 +2,15 @@ import { useAuth } from "../context/AuthContext"
 import { motion, AnimatePresence } from "framer-motion"
 import { useState } from "react"
 import { Menu, X } from "lucide-react"
+import { Link } from "react-router-dom"
 
 function NavbarDashboard() {
     const [isOpen, setIsOpen] = useState(false)
-    // const [currentUser, setCurrentUser] = useState("")
-    // const 
-    // const { isAuthenticated, logout, currentUser } = useAuth()
+    const { isAuthenticated, logout, currentUser } = useAuth()
     const handleLogout = () => {
         logout()
         navigate("/")
     }
-    const currentUser = "Tonsa"
     return (
         <nav className="bg-white shadow-md">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -26,18 +24,6 @@ function NavbarDashboard() {
                         </div>
                     </div>
             
-                    <div className="hidden sm:ml-6 sm:flex sm:items-center">
-                        
-                        <div className="flex items-center space-x-4">
-                            <span className="text-sm text-gray-700">
-                                Welcome, 
-                                <span className="font-medium">{currentUser?.username}</span>
-                                {currentUser?.role === "admin" && (
-                                <span className="ml-1 px-2 py-0.5 text-xs bg-yellow-100 text-yellow-800 rounded-full">Admin</span>
-                                )}
-                            </span>  
-                        </div>
-                    </div>  
                     <div className="sm:flex items-center space-x-4 hidden ">
                         <motion.button
                             whileHover={{ scale: 1.05 }}
@@ -74,21 +60,12 @@ function NavbarDashboard() {
                         className="sm:hidden"
                     >
                     <div className="pt-2 pb-3 space-y-1">
-                        {/* <Link
-                        to="/dashboard"
-                        className="block pl-3 pr-4 py-2 text-center border-l-4 border-transparent font-medium text-gray-600 hover:bg-gray-50 hover:border-yellow-500 hover:text-gray-800"
-                        >
-                            Dashboard
-                        </Link> */}
-                
                         <button
                         onClick={handleLogout}
                         className="block w-full text-center pl-3 pr-4 py-2 border-l-4 border-transparent font-medium text-gray-600 hover:bg-gray-50 cursor-pointer hover:border-yellow-500 hover:text-gray-800"
                         >
                             Logout
                         </button>
-                
-                
                     </div>
                 </motion.div>
                 )}

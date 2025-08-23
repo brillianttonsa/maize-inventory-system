@@ -16,6 +16,7 @@ import Dashboard from "./pages/Dashboard"
 
 // protecting routes
 import { AuthProvider } from "./context/AuthContext"
+import ProtectedRoute from "./components/ProtectedRoute"
 
 export default function App() {
 
@@ -31,13 +32,11 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword/>}/>
             <Route path="/terms-of-service" element={<TermsPage/>}/>
             <Route path="private-policy" element={<PrivacyPolicyPage/>}/>
-            <Route path="/dashboard" element={<Dashboard/>}/>
-            {/* <Route path="/dashboard" element={
+            <Route path="/dashboard" element={
               <ProtectedRoute>
                 <Dashboard/>
               </ProtectedRoute>
-            } /> */}
-            {/* <Route path="/dashboard" element={<Dashboard/>} /> */}
+            } />
             <Route path="*" element={<NotFound />} />
           </Routes>  
         </Router>
