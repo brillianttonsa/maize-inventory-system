@@ -5,7 +5,7 @@ import { fadeIn } from "../animations/Animations";
 export default function WhatIsMaizeTrack() {
   return (
     <section className="relative overflow-hidden sm:py-24 py-20 px-4">
-      <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/50 to-yellow-400/50 z-10"></div>
+      <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/50 to-yellow-300/50 z-10"></div>
 
       <div className="relative z-20">
         <motion.div
