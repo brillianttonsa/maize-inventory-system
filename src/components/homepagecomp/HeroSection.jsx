@@ -4,7 +4,7 @@ import { Link } from "react-router-dom"
 
 export const HeroSection = () => {
     return (
-        <section className="relative sm:py-24 px-4 py-20 overflow-hidden bg-cover bg-center" style={{ backgroundImage: "url('/src/assets/hero-bg.jpg')" }}
+        <section className="relative sm:py-24 px-4 py-20 overflow-hidden bg-cover bg-center" style={{ backgroundImage: "url('/hero-bg.jpg')" }}
             >
             <div className="absolute inset-0 bg-gradient-to-r from-yellow-600/80 to-yellow-800/80 z-10"></div>
                 
