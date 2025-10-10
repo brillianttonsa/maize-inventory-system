@@ -1,4 +1,4 @@
-import Navbar from "../components/Navbar"
+import Navbar from "../components/common/Navbar"
 import { HeroSection } from "../components/homepagecomp/HeroSection"
 import WhatIsMaizeTrack from "../components/homepagecomp/WhatMaizeTrack"
 import { FeatureSection } from "../components/homepagecomp/FeatureSection"
@@ -11,7 +11,9 @@ function Home(){
 
   return (
     <>
+      {/* {Navigation bar} */}
       <Navbar/>
+
       <div className="min-h-screen bg-gray-50">
         {/* Hero Section */}
         <HeroSection/>
@@ -32,6 +34,7 @@ function Home(){
         <CallToAction/>
       </div>
 
+      {/* {Footer} */}
       <Footer/>
     </>
   )

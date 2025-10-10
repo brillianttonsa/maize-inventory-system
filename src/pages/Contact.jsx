@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { MapPin, Phone, Mail, Clock } from 'lucide-react';
-import Navbar from "../components/Navbar";
+import Navbar from "../components/common/Navbar"
 import axios from "axios";
 import { useState } from "react";
 import FeaturesContact from "../components/utils/FeaturesContact";

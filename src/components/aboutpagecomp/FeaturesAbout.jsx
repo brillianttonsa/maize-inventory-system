@@ -20,18 +20,10 @@ const FeaturesAbout = [
         description: 
         "Identify bottlenecks and inefficiencies to optimize your production process.",
     },{
-        title: "Role-Based Access for Better Control",
-        description: 
-        "Whether you're an admin, supervisor, or floor staff, MaizeTrackAI provides personalized dashboards and tools — ensuring everyone only sees what they need to see."
-    },{
         title: "Data-Driven Decisions",
         description: 
         "Access comprehensive reports and analytics to make informed business decisions.",
-    },{
-        title: "User-Friendly Interface",
-        description: 
-        "Intuitive design that requires minimal training for your team to use effectively.",
-    },
+    }
 ]
 
 export default FeaturesAbout

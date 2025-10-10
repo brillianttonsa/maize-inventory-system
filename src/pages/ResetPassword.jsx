@@ -3,7 +3,7 @@ import { useNavigate, useParams } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Loader } from "lucide-react"
 import axios from "axios"
-import Navbar from "../components/Navbar"
+import Navbar from "../components/common/Navbar"
 
 function ResetPassword() {
   const [password, setPassword] = useState("")

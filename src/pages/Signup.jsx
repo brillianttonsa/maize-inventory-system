@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Loader } from "lucide-react";
 import axios from "axios"
-import Navbar from "../components/Navbar";
+import Navbar from "../components/common/Navbar"
 
 function Signup(){
   const [formData, setFormData] = useState({

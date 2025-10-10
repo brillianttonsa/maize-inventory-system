@@ -4,7 +4,7 @@ import { motion } from "framer-motion"
 import axios from "axios"
 import { useAuth } from "../context/AuthContext"
 import { Loader2 } from "lucide-react";
-import Navbar from "../components/Navbar"
+import Navbar from "../components/common/Navbar"
 
 function Login(){
   const [credentials, setCredentials] = useState({
