@@ -5,6 +5,7 @@ import { FeatureSection } from "../components/homepagecomp/FeatureSection"
 import { ModulesSection } from "../components/homepagecomp/ModulesSection"
 import { CallToAction } from "../components/homepagecomp/CallToAction"
 import { BenefitsSection } from "../components/homepagecomp/BenefitSection"
+import { Footer } from "../components/common/Footer"
 
 function Home(){
 
@@ -30,6 +31,8 @@ function Home(){
         {/* Call to Action */}
         <CallToAction/>
       </div>
+
+      <Footer/>
     </>
   )
 }

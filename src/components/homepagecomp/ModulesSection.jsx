@@ -7,7 +7,7 @@ export const ModulesSection = () => {
     
     return (
       <section className="relative py-20 bg-white">
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/50 to-yellow-200/50 z-10"></div>
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow-200/30 to-yellow-200/50 z-10"></div>
         <div className="relative container mx-auto px-4">
           <motion.div
             className="text-center mb-16"
@@ -15,7 +15,7 @@ export const ModulesSection = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
           >
-            <h2 className="text-3xl md:text-4xl font-bold mb-4 font-bold">
+            <h2 className="text-3xl md:text-4xl mb-4 font-bold">
               Three Powerful Modules, One Integrated System
             </h2>
             <p className="text-lg max-w-3xl mx-auto">

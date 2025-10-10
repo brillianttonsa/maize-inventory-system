@@ -3,7 +3,7 @@ import { Link } from "react-router-dom"
 
 export const CallToAction = () => {
     return (
-        <section className="bg-yellow-500 py-16">
+        <section className="bg-yellow-200 py-16">
           <div className="container mx-auto px-4 text-center">
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}
@@ -19,7 +19,7 @@ export const CallToAction = () => {
                 <motion.button
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
-                  className="bg-yellow-600 cursor-pointer text-white px-8 py-3 rounded-lg font-medium shadow-md hover:bg-yellow-700 transition-colors"
+                  className="bg-yellow-400 cursor-pointer text-white px-8 py-3 rounded-lg font-medium shadow-md hover:bg-yellow-600 transition-colors"
                 >
                   Get Started
                 </motion.button>
