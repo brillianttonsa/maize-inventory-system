@@ -2,8 +2,8 @@ import { useState } from "react"
 import { Link, useNavigate } from "react-router-dom"
 import { motion } from "framer-motion"
 import { Loader } from "lucide-react";
-import axios from "axios"
 import Navbar from "../components/common/Navbar"
+import api from "../services/api";
 
 function Signup(){
   const [formData, setFormData] = useState({
@@ -44,8 +44,7 @@ function Signup(){
     setLoading(true)
 
     try {
-        const API = import.meta.env.VITE_API_URL
-        const response = await axios.post(`${API}/auth/register`, {
+        const response = await api.post(`/auth/register`, {
           name: formData.name,
           username: formData.username,
           email: formData.email,

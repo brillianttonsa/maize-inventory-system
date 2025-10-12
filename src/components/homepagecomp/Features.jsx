@@ -103,12 +103,7 @@ export const modules = [
     color: "from-green-500 to-green-600",
     features: [
       "Batch tracking and traceability",
-      "Equipment monitoring and maintenance",
       "Production scheduling and planning",
-      "Quality assurance and testing",
-      "Waste tracking and reduction",
-      "Labor management and scheduling",
-      "Recipe and formula management",
       "Compliance and safety monitoring",
     ],
   },

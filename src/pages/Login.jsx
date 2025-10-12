@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react"
 import { Link, useNavigate, useLocation } from "react-router-dom"
 import { motion } from "framer-motion"
-import axios from "axios"
+import api from "../services/api"
 import { useAuth } from "../context/AuthContext"
 import { Loader2 } from "lucide-react";
 import Navbar from "../components/common/Navbar"
@@ -48,8 +48,7 @@ function Login(){
     setLoading(true)
 
     try {
-      const API = import.meta.env.VITE_API_URL
-      const response = await axios.post(`${API}/auth/login`, credentials)
+      const response = await api.post(`/auth/login`, credentials)
       if (response.data.token) {
         login(response.data.token, response.data.user)
         navigate("/dashboard")

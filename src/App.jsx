@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes,Link } from "react-router-dom"
+import { BrowserRouter as Router, Route, Routes} from "react-router-dom"
 
 // pages
 import Home from "./pages/Home"
@@ -11,6 +11,15 @@ import ResetPassword from "./pages/ResetPassword"
 import TermsPage from "./pages/legal/TermsPage"
 import PrivacyPolicyPage from "./pages/legal/PrivacypolicyPage"
 
+
+import { Dashboard } from "./dashboardpages/Dashboard"
+import Layout from "./components/dashboardcomponents/Sidebar"
+import Procurement from "./dashboardpages/Procurement"
+import Production from "./dashboardpages/Production"
+import Sales from "./dashboardpages/Sales"
+import Reports from "./dashboardpages/Reports"
+import { Analytics } from "./dashboardpages/Analytics"
+import { Settings } from "./dashboardpages/Settings"
 
 
 // protecting routes
@@ -36,6 +45,49 @@ export default function App() {
                 <Dashboard/>
               </ProtectedRoute>
             } /> */}
+
+            <Route path="/dashboard" element={
+              <Layout>
+                <Dashboard />
+              </Layout>
+            } />
+
+            <Route path="/procurement" element={
+              <Layout>
+                <Procurement />
+              </Layout>
+            } />
+
+            <Route path="/production" element={
+              <Layout>
+                <Production />
+              </Layout>
+            } />
+
+            <Route path="/sales" element={
+              <Layout>
+                <Sales />
+              </Layout>
+            } />
+
+            <Route path="/analytics" element={
+              <Layout>
+                <Analytics />
+              </Layout>
+            } />
+
+            <Route path="/reports" element={
+              <Layout>
+                <Reports />
+              </Layout>
+            } />
+
+            <Route path="/settings" element={
+              <Layout>
+                <Settings />
+              </Layout>
+            } />
+
             <Route path="*" element={<NotFound />} />
           </Routes>  
         </Router>
