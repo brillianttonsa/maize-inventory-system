@@ -24,7 +24,7 @@ import { Settings } from "./dashboardpages/Settings"
 
 // protecting routes
 import { AuthProvider } from "./context/AuthContext"
-import ProtectedRoute from "./components/ProtectedRoute"
+import ProtectedRoute from "./context/ProtectedRoute"
 
 export default function App() {
 
@@ -40,52 +40,62 @@ export default function App() {
             <Route path="/reset-password" element={<ResetPassword/>}/>
             <Route path="/terms-of-service" element={<TermsPage/>}/>
             <Route path="private-policy" element={<PrivacyPolicyPage/>}/>
-            {/* <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <Dashboard/>
-              </ProtectedRoute>
-            } /> */}
-
             <Route path="/dashboard" element={
-              <Layout>
+              <ProtectedRoute>
+                <Layout>
                 <Dashboard />
               </Layout>
+              </ProtectedRoute>
             } />
 
+            
+
             <Route path="/procurement" element={
+              <ProtectedRoute>
               <Layout>
-                <Procurement />
-              </Layout>
+              <Procurement />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             <Route path="/production" element={
+              <ProtectedRoute>
               <Layout>
-                <Production />
-              </Layout>
+              <Production />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             <Route path="/sales" element={
+              <ProtectedRoute>
               <Layout>
-                <Sales />
-              </Layout>
+              <Sales />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             <Route path="/analytics" element={
+              <ProtectedRoute>
               <Layout>
-                <Analytics />
-              </Layout>
+              <Analytics />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             <Route path="/reports" element={
+              <ProtectedRoute>
               <Layout>
-                <Reports />
-              </Layout>
+              <Reports />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             <Route path="/settings" element={
+              <ProtectedRoute>
               <Layout>
-                <Settings />
-              </Layout>
+              <Settings />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             <Route path="*" element={<NotFound />} />

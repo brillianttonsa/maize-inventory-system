@@ -1,5 +1,7 @@
 import pg from "pg";
 const { Pool } = pg;
+import dotenv from "dotenv";
+dotenv.config();
 
 // PostgreSQL connection (adjust credentials)
 const pool = new Pool({

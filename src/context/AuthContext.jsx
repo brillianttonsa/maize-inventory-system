@@ -2,7 +2,7 @@ import { createContext, useState, useContext, useEffect } from "react"
 
 const AuthContext = createContext()
 
-export function useAuth() {
+function useAuth() {
   const context = useContext(AuthContext)
   if (!context) {
     throw new Error("useAuth must be used within an AuthProvider")
@@ -10,19 +10,33 @@ export function useAuth() {
   return context
 }
 
-export const AuthProvider = ({ children }) => {
+function AuthProvider({ children }) {
   const [currentUser, setCurrentUser] = useState(null)
-  const [token, setToken] = useState(localStorage.getItem("token") || null)
+  const [token, setToken] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Load token and user from localStorage on app start
     const storedToken = localStorage.getItem("token")
     const storedUser = localStorage.getItem("user")
 
     if (storedToken && storedUser) {
-      setToken(storedToken)
-      setCurrentUser(JSON.parse(storedUser))
+      try {
+        const parsedUser = JSON.parse(storedUser)
+        if (storedToken.trim() && parsedUser?.username) {
+          setToken(storedToken)
+          setCurrentUser(parsedUser)
+        } else {
+          localStorage.removeItem("token")
+          localStorage.removeItem("user")
+        }
+      } catch (error) {
+        console.error("Invalid user data in localStorage:", error)
+        localStorage.removeItem("token")
+        localStorage.removeItem("user")
+      }
+    } else {
+      localStorage.removeItem("token")
+      localStorage.removeItem("user")
     }
 
     setLoading(false)
@@ -42,16 +56,11 @@ export const AuthProvider = ({ children }) => {
     setCurrentUser(null)
   }
 
-  const isAuthenticated = () => !!token
+  const isAuthenticated = () => !!token && currentUser !== null
 
-  const value = {
-    currentUser,
-    token,
-    login,
-    logout,
-    isAuthenticated,
-    loading,
-  }
+  const value = { currentUser, token, login, logout, isAuthenticated, loading }
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
+
+export { useAuth, AuthProvider }

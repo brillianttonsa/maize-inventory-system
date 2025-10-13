@@ -8,9 +8,10 @@ export const signup = async (req, res) => {
   try {
     const { name, username, email, password } = req.body;
 
-    if (!name || !username || !email || !password) {
-      return res.status(400).json({ message: "All fields are required" });
+    if (!username || !password || !email || !name) {
+      return res.status(400).json({ success: false, message: "All fields are required" });
     }
+    
 
     const newUser = await registerUser({ name, username, email, password });
 
@@ -25,6 +26,7 @@ export const signup = async (req, res) => {
       },
     });
   } catch (err) {
+    console.error(err);
     return res.status(400).json({ success: false, message: err.message });
   }
 };
