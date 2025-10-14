@@ -11,7 +11,7 @@ CREATE TABLE users (
 -- production
 CREATE TABLE production_batches (
     id SERIAL PRIMARY KEY,
-    batch_number VARCHAR(50) NOT NULL,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
     maize_quantity INT NOT NULL,
     flour_output INT NOT NULL,
     bran_output INT NOT NULL,
@@ -19,8 +19,6 @@ CREATE TABLE production_batches (
     electricity_usage INT NOT NULL,
     sacks_used INT NOT NULL,
     employee_notes TEXT,
-    start_time TIME NOT NULL,
-    end_time TIME,
     date DATE DEFAULT CURRENT_DATE,
     created_at TIMESTAMP DEFAULT NOW()
 );
@@ -29,6 +27,7 @@ CREATE TABLE production_batches (
 -- procurement
 CREATE TABLE procurement_orders (
     id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE
     supplier VARCHAR(255) NOT NULL,
     quantity NUMERIC(12,2) NOT NULL,
     price_per_kg NUMERIC(12,2) NOT NULL,
@@ -44,16 +43,17 @@ CREATE TABLE procurement_orders (
 
 -- sales
 CREATE TABLE sales (
-  id SERIAL PRIMARY KEY,
-  customer_name VARCHAR(100) NOT NULL,
-  customer_contact VARCHAR(50) NOT NULL,
-  product_type VARCHAR(20) CHECK (product_type IN ('flour', 'bran')) NOT NULL,
-  quantity DECIMAL(10, 2) NOT NULL,
-  price_per_kg DECIMAL(10, 2) NOT NULL,
-  delivery_cost DECIMAL(10, 2) NOT NULL,
-  delivery_address VARCHAR(255) NOT NULL,
-  payment_method VARCHAR(30) CHECK (payment_method IN ('cash', 'bank_transfer', 'mobile_money')) NOT NULL,
-  total_amount DECIMAL(12, 2) NOT NULL,
-  notes VARCHAR(200),
-  date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    id SERIAL PRIMARY KEY,
+    user_id INT REFERENCES users(id) ON DELETE CASCADE
+    customer_name VARCHAR(100) NOT NULL,
+    customer_contact VARCHAR(50) NOT NULL,
+    product_type VARCHAR(20) CHECK (product_type IN ('flour', 'bran')) NOT NULL,
+    quantity DECIMAL(10, 2) NOT NULL,
+    price_per_kg DECIMAL(10, 2) NOT NULL,
+    delivery_cost DECIMAL(10, 2) NOT NULL,
+    delivery_address VARCHAR(255) NOT NULL,
+    payment_method VARCHAR(30) CHECK (payment_method IN ('cash', 'bank_transfer', 'mobile_money')) NOT NULL,
+    total_amount DECIMAL(12, 2) NOT NULL,
+    notes VARCHAR(200),
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );

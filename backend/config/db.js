@@ -12,4 +12,10 @@ const pool = new Pool({
   port: process.env.DB_PORT,
 });
 
+// // Neon PostgreSQL (optional - comment out local when using this)
+// const pool = new Pool({
+//   connectionString: "YOUR_NEON_DATABASE_URL",
+//   ssl: { rejectUnauthorized: false },
+// });
+
 export default pool

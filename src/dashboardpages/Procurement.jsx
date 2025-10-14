@@ -184,34 +184,50 @@ const Procurement = () => {
           <h3 className="text-lg font-semibold mb-4">Recent Orders</h3>
 
           <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-              <thead>
-                <tr>
-                  <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Supplier</th>
-                  <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Quantity</th>
-                  <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Total Cost</th>
-                  <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Delivery Date</th>
-                  <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Action</th>
-                  <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Notes</th>
+          <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+  <thead>
+    <tr>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>#</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Supplier</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Quantity / Price per kg</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Quality</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Transport Cost</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Total Cost</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Delivery Date</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Notes</th>
+      <th className={`px-4 py-3 text-left text-xs font-medium uppercase tracking-wider ${darkMode ? "text-gray-400" : "text-gray-500"}`}>Action</th>
+    </tr>
+  </thead>
+  <tbody className={`divide-y ${darkMode ? "divide-gray-700" : "divide-gray-200"}`}>
+  {orders.length === 0 ? (
+    <tr>
+      <td colSpan="9" className="px-4 py-4 text-center text-gray-500">
+        No orders yet.
+      </td>
+    </tr>
+  ) : (
+    currentOrders.map((order, index) => (
+      <tr key={order.id}>
+        <td className="px-4 py-4 whitespace-nowrap font-medium">{indexOfFirst + index + 1}</td>
+        <td className="px-4 py-4 whitespace-nowrap font-medium">{order.supplier}</td>
+        <td className="px-4 py-4 whitespace-nowrap">{order.quantity} kg / {order.price_per_kg || order.pricePerKg}/=</td>
+        <td className="px-4 py-4 whitespace-nowrap">{order.quality}</td>
+        <td className="px-4 py-4 whitespace-nowrap">{order.transport_cost || order.transportCost}/=</td>
+        <td className="px-4 py-4 whitespace-nowrap">{order.total_cost || order.totalCost}/=</td>
+        <td className="px-4 py-4 whitespace-nowrap">{new Date(order.delivery_date || order.deliveryDate).toLocaleDateString()}</td>
+        <td className="px-4 py-4 whitespace-nowrap">{order.notes || "N/A"}</td>
+        <td className="px-4 py-4 whitespace-nowrap">
+          <button className="text-blue-600 mr-2" onClick={() => handleEdit(order)}>Edit</button>
+          <button className="text-red-600" onClick={() => handleDelete(order.id)}>Delete</button>
+        </td>
+      </tr>
+    ))
+  )}
+</tbody>
 
-                </tr>
-              </thead>
-              <tbody className={`divide-y ${darkMode ? "divide-gray-700" : "divide-gray-200"}`}>
-                {currentOrders.map((order) => (
-                  <tr key={order.id}>
-                    <td className="px-4 py-4 whitespace-nowrap font-medium">{order.supplier}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{order.quantity} kg</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{order.total_cost || order.totalCost}/=</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{new Date(order.delivery_date || order.deliveryDate).toLocaleDateString()}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">{order.notes || "N/A"}</td>
-                    <td className="px-4 py-4 whitespace-nowrap">
-                      <button className="text-blue-600 mr-2" onClick={() => handleEdit(order)}>Edit</button>
-                      <button className="text-red-600" onClick={() => handleDelete(order.id)}>Delete</button>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+</table>
+
+
           </div>
 
           {/* Pagination */}
