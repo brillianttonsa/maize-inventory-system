@@ -1,6 +1,6 @@
 import * as service from "../services/procurementService.js";
 
-// GET /procurement
+// ✅ GET /procurement
 export const getOrders = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -11,9 +11,7 @@ export const getOrders = async (req, res) => {
   }
 };
 
-
-
-// POST /procurement
+// ✅ POST /procurement
 export const createOrder = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -24,7 +22,7 @@ export const createOrder = async (req, res) => {
   }
 };
 
-// PUT /procurement/:id
+// ✅ PUT /procurement/:id
 export const updateOrder = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -35,7 +33,7 @@ export const updateOrder = async (req, res) => {
   }
 };
 
-// DELETE /procurement/:id
+// ✅ DELETE /procurement/:id
 export const deleteOrder = async (req, res) => {
   try {
     const userId = req.user.id;

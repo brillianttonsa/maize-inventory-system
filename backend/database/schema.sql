@@ -26,19 +26,19 @@ CREATE TABLE production_batches (
 
 -- procurement
 CREATE TABLE procurement_orders (
-    id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE
-    supplier VARCHAR(255) NOT NULL,
-    quantity NUMERIC(12,2) NOT NULL,
-    price_per_kg NUMERIC(12,2) NOT NULL,
-    transport_cost NUMERIC(12,2) NOT NULL,
-    total_cost NUMERIC(12,2) NOT NULL,
-    delivery_date DATE NOT NULL,
-    quality VARCHAR(20) NOT NULL DEFAULT 'high',
-    notes TEXT,
-    created_at TIMESTAMP DEFAULT NOW(),
-    updated_at TIMESTAMP DEFAULT NOW()
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  supplier VARCHAR(255) NOT NULL,
+  quantity NUMERIC(12,2) NOT NULL,
+  price_per_kg NUMERIC(12,2) NOT NULL,
+  transport_cost NUMERIC(12,2) NOT NULL,
+  total_cost NUMERIC(12,2) NOT NULL,
+  delivery_date DATE NOT NULL,
+  notes TEXT,
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
 );
+
 
 
 -- sales
