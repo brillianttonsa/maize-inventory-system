@@ -1,3 +1,16 @@
+import {
+  LayoutDashboard,
+  Package,
+  Factory,
+  TrendingUp,
+  Paperclip,
+  Settings,
+  Truck,
+  Users,
+  Banknote,
+  LogOut,
+  } from "lucide-react"
+
 export const navigationItems = [
     { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
     { name: "Inventory", href: "/inventory", icon: Package },

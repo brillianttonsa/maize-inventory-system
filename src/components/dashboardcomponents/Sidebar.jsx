@@ -1,19 +1,10 @@
 import { useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { 
-  LayoutDashboard, 
-  Factory, 
-  TrendingUp, 
   Wheat, 
-  Paperclip,
-  Settings,
   Menu,
   X,
-  Package,
-  Truck,
-  Users,
-  Banknote,
-  LogOut,
+  
 } from "lucide-react";
 import { navigationItems } from "./navigationsTabs";
 
