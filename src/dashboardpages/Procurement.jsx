@@ -1,7 +1,6 @@
-
 import ProcurementForm from "../components/dashboardcomponents/procurement/ProcurementForm"
 import OrdersTable from "../components/dashboardcomponents/procurement/OrdersTable"
-import { useProcurementLogic } from "../components/dashboardcomponents/procurement/useProcurementLogic" 
+import { useProcurementLogic } from "../hooks/useProcurementLogic"
 
 const ProcurementDashboard = () => {
   
