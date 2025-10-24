@@ -6,7 +6,7 @@ export const getBatches = async (req, res) => {
     const userId = req.user.id
     const batches = (await productionService.getBatchesByUser(userId)).map(b => ({
       ...b,
-      date: b.date.toISOString().split("T")[0]
+      date: b.date
     }));
     
     res.json(batches)

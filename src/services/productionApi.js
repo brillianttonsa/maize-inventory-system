@@ -1,26 +1,9 @@
-// src/lib/productionApi.js
+
 import api from "./api";
 
-// Get all production batches
-export const getBatches = async () => {
-  const res = await api.get("/production");
-  return res.data;
-};
-
-// Create a new batch
-export const createBatch = async (batchData) => {
-  const res = await api.post("/production", batchData);
-  return res.data;
-};
-
-// Update an existing batch
-export const updateBatch = async (id, batchData) => {
-  const res = await api.put(`/production/${id}`, batchData);
-  return res.data;
-};
-
-// Delete a batch
-export const deleteBatch = async (id) => {
-  const res = await api.delete(`/production/${id}`);
-  return res.data;
+export const productionService = {
+  getAll: async () => (await api.get("/production")).data,
+  create: async (payload) => (await api.post("/production", payload)).data,
+  update: async (id, payload) => (await api.put(`/production/${id}`, payload)).data,
+  remove: async (id) => await api.delete(`/production/${id}`)
 };

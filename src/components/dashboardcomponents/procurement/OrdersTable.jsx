@@ -1,5 +1,5 @@
-import TablePagination from "./TablePagination";
-import TableActions from "./TableActions";
+import TablePagination from "../../common/TablePagination";
+import TableActions from "../../common/TableActions";
 import ExportCsvButton from "./ExportCsvButton";
 
 const OrdersTable = ({
@@ -89,11 +89,11 @@ const OrdersTable = ({
                     {order.notes || "—"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
-                    <TableActions
-                      order={order}
-                      handleEdit={handleEdit}
-                      handleDelete={handleDelete}
-                    />
+                  <TableActions
+                    item={order} // Change 'order' to 'item'
+                    handleEdit={handleEdit}
+                    handleDelete={handleDelete}
+                  />
                   </td>
                 </tr>
               ))
