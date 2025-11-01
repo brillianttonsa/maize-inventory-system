@@ -1,6 +1,3 @@
-// src/components/common/TableActions.jsx (Finalized)
-
-import React from 'react';
 import { Pencil, Trash2 } from 'lucide-react';
 
 const TableActions = ({ item, handleEdit, handleDelete }) => {

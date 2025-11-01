@@ -1,7 +1,9 @@
 import TablePagination from "../../common/TablePagination";
 import TableActions from "../../common/TableActions";
-import ExportCsvButton from "./ExportCsvButton";
+import ExportCSVButton from "../../common/ExportCSVButton";
+import { PROCUREMENT_HEADERS, procurementDataMapper } from "../../data/CSVData";
 
+//table component
 const OrdersTable = ({
   orders,
   currentOrders,
@@ -11,47 +13,41 @@ const OrdersTable = ({
   currentPage,
   totalPages,
   paginate,
+  loading
 }) => {
+
   
   return (
     <div className="p-6 rounded-lg shadow-lg bg-white border border-yellow-200">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-yellow-700">Recent Orders</h3>
-        <ExportCsvButton data={orders} filenamePrefix="procurement_orders" />
-      </div>
+        <ExportCSVButton 
+          data={orders} 
+          filename="procurement_orders" 
+          headers={PROCUREMENT_HEADERS} 
+          dataMapper={procurementDataMapper}
+          disabled={orders.length === 0}
+        />
+      </div> 
 
       <div className="overflow-x-auto shadow-sm rounded-lg border border-gray-100">
-        <table className="min-w-full divide-y divide-gray-200 italic">
+        <table className="min-w-full divide-y divide-gray-200 ">
           <thead className="bg-yellow-100">
             <tr>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700">
-                No
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Supplier
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Quantity / Price
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Transport Cost
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Total Cost
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Delivery Date
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Notes
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700">
-                Action
-              </th>
-            </tr>
+                {["S/N", "Supplier", "Quantity / Price", "Transport Cost", "Total Cost", "Delivery Date","Notes", "Action"].map(header => (
+                    <th key={header} className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-yellow-700">
+                        {header}
+                    </th>
+                ))}
+              </tr>
+            
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {orders.length === 0 ? (
+            {loading ? (
+                <tr>
+                  <td colSpan="7" className="px-4 py-4 text-center text-gray-500">Loading...</td>
+                </tr>
+              ) : orders.length === 0 ? (
               <tr>
                 <td colSpan="8" className="px-4 py-4 text-center text-gray-500">
                   No orders yet.
@@ -63,7 +59,7 @@ const OrdersTable = ({
                   <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-900">
                     {indexOfFirst + index + 1}
                   </td>
-                  <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-900">
+                  <td className="px-4 py-4 whitespace-nowrap font-medium text-gray-900 capitalize">
                     {order.supplier}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right">
@@ -85,12 +81,12 @@ const OrdersTable = ({
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">
                     {new Date(order.delivery_date || order.deliveryDate).toLocaleDateString()}
                   </td>
-                  <td className="px-4 py-4 max-w-xs overflow-hidden text-ellipsis text-gray-500">
+                  <td className="px-4 py-4 max-w-xs overflow-hidden text-ellipsis text-gray-700">
                     {order.notes || "—"}
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap">
                   <TableActions
-                    item={order} // Change 'order' to 'item'
+                    item={order} 
                     handleEdit={handleEdit}
                     handleDelete={handleDelete}
                   />
@@ -110,5 +106,7 @@ const OrdersTable = ({
     </div>
   );
 };
+
+
 
 export default OrdersTable;

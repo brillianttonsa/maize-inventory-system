@@ -1,28 +1,16 @@
-import { useMemo } from "react";
-
+// form component
 const ProcurementForm = ({
   formData,
-  setFormData,
   editId,
-  handleSubmit,
+  handleSaveOrUpdate,
   handleCancelEdit,
+  handleChange,
+  wordCount,
+  error,
+  saving
 }) => {
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-
-    if (name === "notes") {
-      const words = value.trim().split(/\s+/).filter(Boolean);
-      // Allows up to 3 words
-      if (words.length > 3 && value.length > formData.notes.length) return;
-    }
-
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
-
-  const wordCount = useMemo(
-    () => formData.notes.trim().split(/\s+/).filter(Boolean).length,
-    [formData.notes]
-  );
+ 
+  const totalAmount = (Number(formData.quantity) * Number(formData.pricePerKg) + Number(formData.transportCost)) || 0;
 
   // Standardized input class
   const inputClass =
@@ -34,7 +22,7 @@ const ProcurementForm = ({
         {editId ? "Edit Order" : "New Maize Order"}
       </h3>
 
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSaveOrUpdate}>
         {/* Supplier */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 text-gray-700">
@@ -112,6 +100,11 @@ const ProcurementForm = ({
           </div>
         </div>
 
+      {/* total cost display */}
+        <div className="mb-4 p-3 bg-green-50 rounded-md text-center border border-green-200">
+            <h4 className="text-md font-bold text-green-700">TOTAL COST: {totalAmount.toFixed(2)}/=</h4>
+        </div>
+
         {/* Notes */}
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 text-gray-700">
@@ -125,36 +118,44 @@ const ProcurementForm = ({
             className={inputClass}
           ></textarea>
           <p
-            className={`text-xs mt-1 ${
-              wordCount > 3 ? "text-red-500" : "text-gray-500"
-            }`}
+            className="text-xs mt-1"
           >
             {wordCount}/3 words (Max)
           </p>
         </div>
+        {error && <p className="text-sm text-red-400 font-bold bg-red-200 border rounded text-center mb-2 p-2">{error}</p>}
 
-        {/* Submit/Cancel Buttons */}
-        <div className="flex space-x-3">
-          {editId && (
+        {/* Conditional Buttons */}
+        {editId ? (
+            <div className="flex gap-4">
+              {/* Cancel Button */}
+              <button 
+                type="button" 
+                onClick={handleCancelEdit}
+                className="w-full py-2 px-4 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 transition-colors"
+                disabled={saving}
+              >
+                Cancel Edit
+              </button>
+              {/* Update Button */}
+              <button 
+                type="submit" 
+                className="w-full py-2 px-4 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+                disabled={saving}
+              >
+                {saving ? "Updating..." : "Update Sale"}
+              </button>
+            </div>
+          ) : (
+            // Record Button 
             <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="flex-1 py-2 px-4 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 transition-colors"
+              type="submit"
+              className="w-full py-2 px-4 bg-yellow-500 text-white font-medium rounded-md hover:bg-yellow-600 transition-colors"
+              disabled={saving}
             >
-              Cancel
+              {saving ? "Saving..." : "Place Order"}
             </button>
           )}
-          <button
-            type="submit"
-            className={`flex-1 py-2 px-4 text-white font-medium rounded-md transition-colors ${
-              editId
-                ? "bg-blue-500 hover:bg-blue-600"
-                : "bg-yellow-500 hover:bg-yellow-600"
-            }`}
-          >
-            {editId ? "Update Order" : "Place Order"}
-          </button>
-        </div>
       </form>
     </div>
   );

@@ -3,7 +3,7 @@ import pool from "../config/db.js";
 // ✅ Get all orders for a specific user
 export const getOrdersByUser = async (userId) => {
   const result = await pool.query(
-    "SELECT * FROM procurement_orders WHERE user_id=$1 ORDER BY id DESC",
+    "SELECT * FROM procurement_orders WHERE user_id=$1 ORDER BY id",
     [userId]
   );
   return result.rows;

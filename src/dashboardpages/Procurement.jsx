@@ -1,24 +1,28 @@
-import ProcurementForm from "../components/dashboardcomponents/procurement/ProcurementForm"
-import OrdersTable from "../components/dashboardcomponents/procurement/OrdersTable"
-import { useProcurementLogic } from "../hooks/useProcurementLogic"
+import ProcurementForm from "../components/dashboardcomponents/procurement/ProcurementForm" // form
+import OrdersTable from "../components/dashboardcomponents/procurement/OrdersTable" //table structure
+import { useProcurementLogic } from "../hooks/useProcurementLogic" //hook
 
+//procurement main page running all components
 const ProcurementDashboard = () => {
   
   const {
     formData,
+    wordCount,
     orders,
     editId,
     currentPage,
     currentOrders,
     totalPages,
     indexOfFirst,
-    setFormData,
-    handleSubmit,
+    error,
+    saving,
+    handleChange,
+    handleSaveOrUpdate,
     handleEdit,
     handleDelete,
     handleCancelEdit,
     paginate,
-  } = useProcurementLogic()
+  } = useProcurementLogic() // destructuring data and function required
 
   // --- RENDER ---
   
@@ -29,10 +33,13 @@ const ProcurementDashboard = () => {
       <div className="lg:col-span-1">
         <ProcurementForm 
           formData={formData}
-          setFormData={setFormData}
+          handleChange={handleChange}
+          wordCount={wordCount}
           editId={editId}
-          handleSubmit={handleSubmit}
+          handleSaveOrUpdate={handleSaveOrUpdate}
           handleCancelEdit={handleCancelEdit}
+          error={error}
+          saving={saving}
         />
       </div>
 
