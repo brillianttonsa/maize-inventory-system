@@ -1,7 +1,8 @@
-
 import { useState, useEffect } from "react";
 import { productionService } from "../services/productionApi";
 import { getTodayDate } from "../components/utils/todaydate";
+import { resetForm } from "../components/common/ResetForm"; //reset function
+import { checkingValidityCountOfNote, wordCounts } from "../components/common/NotesMaxCount";
 
 const initialFormData = {
   maizeQuantity: "",
@@ -10,7 +11,7 @@ const initialFormData = {
   waterUsage: "",
   electricityUsage: "",
   sacksUsed: "",
-  employeeNotes: "",
+  notes: "",
   date: getTodayDate(),
 };
 
@@ -18,157 +19,141 @@ export const useProductionLogic = () => {
   const [formData, setFormData] = useState(initialFormData);
   const [batches, setBatches] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [editingBatchId, setEditingBatchId] = useState(null);
-  const rowsPerPage = 5;
+  const [editId, setEditId] = useState(null);
+  const itemsPerPage = 5;
 
+
+  // --- FETCH ORDERS ---
+  const fetchBatches = async () => {
+    try {
+      setLoading(true);
+      await productionService.getAll().then(setBatches);
+    } catch (err) {
+      console.error(err);
+      setError("Fail searching batches");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // -- FETCH --
   useEffect(() => {
-    const fetchBatches = async () => {
-      try {
-        const data = await productionService.getAll();
-
-        const formatted = data.map((item) => ({
-          id: item.id,
-          maizeQuantity: item.maize_quantity,
-          flourOutput: item.flour_output,
-          branOutput: item.bran_output,
-          waterUsage: item.water_usage,
-          electricityUsage: item.electricity_usage,
-          sacksUsed: item.sacks_used,
-          employeeNotes: item.employee_notes,
-          date: item.date.slice(0, 10),
-        }));
-
-        setBatches(formatted);
-      } catch (err) {
-        console.error(err);
-      } finally {
-        setLoading(false);
-      }
-    };
-
     fetchBatches();
   }, []);
 
-  const totalPages = Math.ceil(batches.length / rowsPerPage);
-  const startIndex = (currentPage - 1) * rowsPerPage;
-  const currentBatches = batches.slice(startIndex, startIndex + rowsPerPage);
+  
 
+  // -- Handling change --
   const handleChange = (e) => {
     const { name, value } = e.target;
-    if (name === "employeeNotes") {
-      const words = value.trim().split(/\s+/).filter(Boolean);
-      if (words.length > 3) return;
-    }
+    setError(null)
+    if (checkingValidityCountOfNote(name,value)) return; // Ensuring notes words are not more than 3
     setFormData((prev) => ({ ...prev, [name]: value }));
+    console.log(formData.notes);
   };
 
+  // word counts in notes input
+  const wordCount = wordCounts(formData)
+
+  // --- SUBMIT / UPDATE---
   const handleSaveOrUpdate = async (e) => {
     e.preventDefault();
+    setSaving(true)
+    setError("")
+    const {
+      maizeQuantity, flourOutput, branOutput, waterUsage, electricityUsage, sacksUsed, notes, date
+    } = formData
 
+    // changing form datas to snake form
     const payload = {
-      maizeQuantity: Number(formData.maizeQuantity),
-      flourOutput: Number(formData.flourOutput),
-      branOutput: Number(formData.branOutput),
-      waterUsage: Number(formData.waterUsage),
-      electricityUsage: Number(formData.electricityUsage),
-      sacksUsed: Number(formData.sacksUsed),
-      employeeNotes: formData.employeeNotes,
-      date: formData.date,
+      maize_quantity: Number(maizeQuantity),
+      flour_output: Number(flourOutput),
+      bran_output: Number(branOutput),
+      water_usage: Number(waterUsage),
+      electricity_usage: Number(electricityUsage),
+      sacks_used: Number(sacksUsed),
+      notes: notes,
+      date: date,
     };
 
     try {
-      if (editingBatchId) {
-        const res = await productionService.update(editingBatchId, payload);
+      const newBatch = editId
+      ? await productionService.update(editId, payload)
+      : await productionService.create(payload);
 
-        const updatedBatch = {
-          id: editingBatchId,
-          maizeQuantity: res.maize_quantity || payload.maizeQuantity,
-          flourOutput: res.flour_output || payload.flourOutput,
-          branOutput: res.bran_output || payload.branOutput,
-          waterUsage: res.water_usage || payload.waterUsage,
-          electricityUsage: res.electricity_usage || payload.electricityUsage,
-          sacksUsed: res.sacks_used || payload.sacksUsed,
-          employeeNotes: res.employee_notes || payload.employeeNotes,
-          date: (res.date || payload.date).slice(0, 10),
-        };
+      setBatches(prev => 
+        editId? prev.map(o => (o.id === editId? newBatch : o)) : [...prev, newBatch]
+      );
+      console.log(formData);
 
-        setBatches((prevBatches) =>
-          prevBatches.map((b) => (b.id === editingBatchId ? updatedBatch : b))
-        );
-        setEditingBatchId(null);
-      } else {
-        const res = await productionService.create(payload);
-
-        const newBatch = {
-          id: res.id,
-          maizeQuantity: res.maize_quantity,
-          flourOutput: res.flour_output,
-          branOutput: res.bran_output,
-          waterUsage: res.water_usage,
-          electricityUsage: res.electricity_usage,
-          sacksUsed: res.sacks_used,
-          employeeNotes: res.employee_notes,
-          date: res.date.slice(0, 10),
-        };
-
-        setBatches((prevBatches) => [...prevBatches, newBatch]);
-      }
-
-      setFormData(initialFormData);
+      resetForm({initialFormData, setFormData, setEditId})
     } catch (err) {
       console.error(err);
-      alert(`Failed to ${editingBatchId ? "update" : "save"} production batch.`);
+      setError("Batch record fail");
+    } finally{
+      setSaving(false)
     }
   };
 
-  const handleDelete = async (id) => {
-    try {
-      await productionService.remove(id);
-      setBatches((prevBatches) => prevBatches.filter((b) => b.id !== id));
-      if (currentBatches.length === 1 && currentPage > 1) {
-        setCurrentPage(currentPage - 1);
-      }
-    } catch (err) {
-      console.error(err);
-      alert("Failed to delete batch.");
-    }
-  };
-
+  // --- EDIT ---
   const handleEdit = (batch) => {
     setFormData({
-      maizeQuantity: batch.maizeQuantity,
-      flourOutput: batch.flourOutput,
-      branOutput: batch.branOutput,
-      waterUsage: batch.waterUsage,
-      electricityUsage: batch.electricityUsage,
-      sacksUsed: batch.sacksUsed,
-      employeeNotes: batch.employeeNotes,
+      maizeQuantity: batch.maize_quantity,
+      flourOutput: batch.flour_output,
+      branOutput: batch.bran_output,
+      waterUsage: batch.water_usage,
+      electricityUsage: batch.electricity_usage,
+      sacksUsed: batch.sacks_used,
+      notes: batch.notes,
       date: batch.date,
     });
-    setEditingBatchId(batch.id);
+    console.log(formData);
+    setEditId(batch.id);
   };
 
+  // Cancel function
   const handleCancelEdit = () => {
-    setFormData(initialFormData);
-    setEditingBatchId(null);
+    resetForm({initialFormData, setFormData, setEditId})
   };
 
+  // --DELETE--
+  const handleDelete = async (id) => {
+      await productionService.remove(id);
+      setBatches(prev => prev.filter(o => o.id !== id) );
+    
+  };
+
+  // --- PAGINATION ---
+  const indexOfLast = currentPage * itemsPerPage;
+  const indexOfFirst = indexOfLast - itemsPerPage;
+  const currentBatches = batches.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(batches.length / itemsPerPage);
+  const paginate = (pageNumber) => setCurrentPage(pageNumber);
+
+  console.log(batches);
+  console.log(currentBatches);
+  console.log(formData);
+  // --RETURN--
   return {
     formData,
-    batches,
+    wordCount,
+    error,
+    saving,
     loading,
-    currentPage,
-    rowsPerPage,
-    totalPages,
-    startIndex,
-    currentBatches,
-    editingBatchId,
     handleChange,
     handleSaveOrUpdate,
-    handleDelete,
     handleEdit,
     handleCancelEdit,
-    setCurrentPage,
+    handleDelete,
+    editId,
+    batches,
+    currentBatches,
+    indexOfFirst,
+    totalPages,
+    currentPage,
+    paginate
   };
 };

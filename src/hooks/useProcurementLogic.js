@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import { procurementService } from "../services/procurementApi";
 import { getTodayDate } from "../components/utils/todaydate";
 import { resetForm } from "../components/common/ResetForm"; //reset function
@@ -29,7 +29,6 @@ export const useProcurementLogic = () => {
     try{
       setLoading(true);
       await procurementService.getAll().then(setOrders);
-
     }catch(error){
         console.log(error);
         setError("Fail searching orders");
@@ -66,12 +65,12 @@ export const useProcurementLogic = () => {
     // changing form datas to snake form
     const payload = {
       supplier,
-      quantity: +quantity,
-      price_per_kg: +pricePerKg,
-      transport_cost: +transportCost,
+      quantity: Number(quantity),
+      price_per_kg: Number(pricePerKg),
+      transport_cost: Number(transportCost),
       delivery_date: deliveryDate,
       notes,
-      total_cost: ((+quantity * +pricePerKg) + +transportCost).toFixed(2),
+      total_cost: Number(((quantity * pricePerKg) + transportCost)).toFixed(2),
     };
 
     try {
@@ -116,7 +115,6 @@ export const useProcurementLogic = () => {
     setOrders(prev => prev.filter(o => o.id !== id));
   };
 
-  // console.log(orders);
 
   // --- PAGINATION ---
   const indexOfLast = currentPage * itemsPerPage;
@@ -137,8 +135,6 @@ export const useProcurementLogic = () => {
     handleEdit,
     handleCancelEdit,
     handleDelete,
-    saving,
-    error,
     editId,
     orders,
     currentOrders,

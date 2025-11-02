@@ -1,17 +1,17 @@
-import * as productionService from "../services/productionService.js"
+import * as productionService from "../services/productionService.js";
 
 // GET /production
 export const getBatches = async (req, res) => {
   try {
-    const userId = req.user.id
+    const userId = req.user.id;
     const batches = (await productionService.getBatchesByUser(userId)).map(b => ({
       ...b,
       date: b.date
     }));
     
-    res.json(batches)
+    res.json(batches);
   } catch (err) {
-    console.error(err)
+    console.error(err);
     res.status(500).json({ error: "Failed to fetch production batches." })
   }
 }
@@ -21,12 +21,26 @@ export const createBatch = async (req, res) => {
   try {
     const userId = req.user.id
     const batch = await productionService.createBatch(userId, req.body)
-    res.json(batch)
+    res.status(201).json(batch)
   } catch (err) {
     console.error(err)
     res.status(500).json({ error: "Failed to create batch." })
   }
 }
+
+// PUT /production/:id
+export const updateBatch = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    const batchId = req.params.id;
+    const updateBatch = await productionService.updateBatch(userId, batchId, req.body);
+    res.json(updateBatch);
+  } catch (err) {
+    console.error(err)
+    res.status(500).json({ error: "Failed to update batch." })
+  }
+}
+
 
 // DELETE /production/:id
 export const deleteBatch = async (req, res) => {
@@ -41,15 +55,3 @@ export const deleteBatch = async (req, res) => {
   }
 }
 
-// PUT /production/:id
-export const updateBatch = async (req, res) => {
-  try {
-    const userId = req.user.id
-    const batchId = req.params.id
-    const batch = await productionService.updateBatch(userId, batchId, req.body)
-    res.json(batch)
-  } catch (err) {
-    console.error(err)
-    res.status(500).json({ error: "Failed to update batch." })
-  }
-}

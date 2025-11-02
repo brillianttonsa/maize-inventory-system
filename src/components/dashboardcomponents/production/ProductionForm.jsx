@@ -1,27 +1,24 @@
 
 
-import { useMemo } from "react"; // Use useMemo for word count calculation
-
 const ProductionForm = ({
+  editId,
   formData,
   handleChange,
   handleSaveOrUpdate,
-  editingBatchId,
   handleCancelEdit,
+  error,
+  saving,
+  wordCount
 }) => {
   // Standardized input class
   const inputClass =
     "w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors bg-white border-gray-300 outline-none";
 
-  const notesWordCount = useMemo(
-    () => formData.employeeNotes.trim().split(/\s+/).filter(Boolean).length,
-    [formData.employeeNotes]
-  );
   
   return (
     <div className="p-6 rounded-lg shadow-lg bg-white border border-yellow-200">
       <h3 className="text-xl font-bold mb-6 text-yellow-700">
-        {editingBatchId ? "Edit Production Batch" : "Record Production"}
+        {editId ? "Edit Production Batch" : "Record Production"}
       </h3>
       
       <form onSubmit={handleSaveOrUpdate}> 
@@ -79,43 +76,53 @@ const ProductionForm = ({
         <div className="mb-4">
           <label className="block text-sm font-medium mb-1 text-gray-700">Employee Notes (max 3 words)</label>
           <textarea
-            name="employeeNotes"
-            value={formData.employeeNotes}
+            name="notes"
+            value={formData.notes}
             onChange={handleChange}
             rows="3"
             className={inputClass}
           ></textarea>
           <p
-            className={`text-xs mt-1 ${
-              notesWordCount > 3 ? "text-red-500" : "text-gray-500"
-            }`}
+            className={`text-xs mt-1`}
           >
-            {notesWordCount}/3 words (Max)
+            {wordCount}/3 words (Max)
           </p>
         </div>
+        w
+
+          {error && <p className="text-sm text-red-400 font-bold bg-red-200 border rounded text-center mb-2 p-2">{error}</p>}
 
         {/* Conditional Buttons */}
-        <div className="flex space-x-3">
-          {editingBatchId && (
+        {editId ? (
+            <div className="flex gap-4">
+              {/* Cancel Button */}
+              <button 
+                type="button" 
+                onClick={handleCancelEdit}
+                className="w-full py-2 px-4 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 transition-colors"
+                disabled={saving}
+              >
+                Cancel Edit
+              </button>
+              {/* Update Button */}
+              <button 
+                type="submit" 
+                className="w-full py-2 px-4 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
+                disabled={saving}
+              >
+                {saving ? "Updating..." : "Update Sale"}
+              </button>
+            </div>
+          ) : (
+            // Record Button 
             <button
-              type="button"
-              onClick={handleCancelEdit}
-              className="flex-1 py-2 px-4 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 transition-colors"
+              type="submit"
+              className="w-full py-2 px-4 bg-yellow-500 text-white font-medium rounded-md hover:bg-yellow-600 transition-colors"
+              disabled={saving}
             >
-              Cancel
+              {saving ? "Saving..." : "Place Order"}
             </button>
           )}
-          <button
-            type="submit"
-            className={`flex-1 py-2 px-4 text-white font-medium rounded-md transition-colors ${
-              editingBatchId
-                ? "bg-blue-500 hover:bg-blue-600"
-                : "bg-yellow-500 hover:bg-yellow-600"
-            }`}
-          >
-            {editingBatchId ? "Update Production" : "Record Production"}
-          </button>
-        </div>
       </form>
     </div>
   );

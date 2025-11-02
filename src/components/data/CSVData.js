@@ -19,3 +19,21 @@ export const procurementDataMapper = (order, index) =>  [
     new Date(order.delivery_date || order.deliveryDate).toLocaleDateString(),
     order.notes || "",
 ];
+
+export const PRODUCTION_HEADERS = [
+    "S/N", "Date", "Maize Quantity (kg)", "Flour Output (kg)", 
+    "Bran Output (kg)", "Water Usage (L)", "Electricity Usage (kWh)", 
+    "Sacks Used", "Employee Notes",
+  ];
+
+export const productionDataMapper = (batch, index) => [
+    index + 1,
+    batch.date,
+    batch.maizeQuantity,
+    batch.flourOutput,
+    batch.branOutput,
+    batch.waterUsage,
+    batch.electricityUsage,
+    batch.sacksUsed,
+    batch.notes || "",
+  ];

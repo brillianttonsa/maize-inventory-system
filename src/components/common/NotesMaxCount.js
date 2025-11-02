@@ -10,6 +10,7 @@ export const checkingValidityCountOfNote = (name, value) => {if (name === "notes
 
 
 export const wordCounts = (formData) => {
+    console.log(formData.notes);
     return formData.notes.trim().split(/\s+/).filter(Boolean).length
     
 };

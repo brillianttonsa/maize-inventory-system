@@ -1,52 +1,7 @@
-
-
-import ExportCSVButton from "../../common/ExportCSVButton"
+import ExportCSVButton from "../../common/ExportCSVButton";
 import TablePagination from '../../common/TablePagination';
-import { Pencil, Trash2 } from 'lucide-react';
 import TableActions from '../../common/TableActions';
-
-// Define the Production-specific CSV headers
-const PRODUCTION_HEADERS = [
-  "S/N", "Date", "Maize Quantity (kg)", "Flour Output (kg)", 
-  "Bran Output (kg)", "Water Usage (L)", "Electricity Usage (kWh)", 
-  "Sacks Used", "Employee Notes",
-];
-
-// Define the Production-specific data mapper function
-const productionDataMapper = (batch, index) => [
-  index + 1,
-  batch.date,
-  batch.maizeQuantity,
-  batch.flourOutput,
-  batch.branOutput,
-  batch.waterUsage,
-  batch.electricityUsage,
-  batch.sacksUsed,
-  batch.employeeNotes || "",
-];
-
-
-
-
-// Local component to match the structure of the original Procurement component set
-// const TableActions = ({ batch, handleEdit, handleDelete }) => (
-//     <div className="flex gap-2">
-//         <button 
-//             onClick={() => handleEdit(batch)} 
-//             title="Edit Batch"
-//             className="text-blue-500 hover:text-blue-700 p-1 rounded-full transition-colors duration-150"
-//         >
-//             <Pencil className="h-4 w-4" />
-//         </button>
-//         <button 
-//             onClick={() => handleDelete(batch.id)} 
-//             title="Delete Batch"
-//             className="text-red-500 hover:text-red-700 p-1 rounded-full transition-colors duration-150"
-//         >
-//             <Trash2 className="h-4 w-4" />
-//         </button>
-//     </div>
-// );
+import { PRODUCTION_HEADERS, productionDataMapper } from "../../data/CSVData";
 
 
 const ProductionTable = ({
@@ -58,6 +13,7 @@ const ProductionTable = ({
   currentPage,
   totalPages,
   paginate,
+  loading
 }) => {
     
 
@@ -78,7 +34,7 @@ const ProductionTable = ({
         <table className="min-w-full divide-y divide-gray-200 italic">
           <thead className="bg-yellow-100">
             <tr>
-              {["No", "Date / Input", "Outputs", "Resources", "Notes", "Action"].map(header => (
+              {["S/N", "Input", "Outputs", "Resources", "Notes", "Action"].map(header => (
                   <th key={header} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700 whitespace-nowrap">
                       {header}
                   </th>
@@ -86,7 +42,11 @@ const ProductionTable = ({
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-100">
-            {batches.length === 0 ? (
+            {loading ? (
+                <tr>
+                  <td colSpan="7" className="px-4 py-4 text-center text-gray-500">Loading...</td>
+                </tr>
+              ) : batches.length === 0 ? (
               <tr>
                 <td colSpan="6" className="px-4 py-4 text-center text-gray-500">
                   No production batches yet.
@@ -104,25 +64,25 @@ const ProductionTable = ({
 
                   {/* Maize Input */}
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    <span className="font-semibold text-yellow-700">{batch.maizeQuantity} kg</span>
+                    <span className="font-semibold text-yellow-700">{batch.maize_quantity} kg</span>
                   </td>
                   
                   {/* Outputs */}
                   <td className="px-4 py-4 whitespace-nowrap text-sm">
-                    <div className="text-green-700">Flour: {batch.flourOutput}kg</div>
-                    <div className="text-green-600">Bran: {batch.branOutput}kg</div>
+                    <div className="text-green-700">Flour: {batch.flour_output}kg</div>
+                    <div className="text-green-600">Bran: {batch.bran_output}kg</div>
                   </td>
                   
                   {/* Resources (Styled slightly red) */}
                   <td className="px-4 py-4 whitespace-nowrap text-sm text-red-500">
-                    <div>Water: {batch.waterUsage}L</div>
-                    <div>Power: {batch.electricityUsage}kWh</div>
-                    <div>Sacks: {batch.sacksUsed}</div>
+                    <div>Water: {batch.water_usage}L</div>
+                    <div>Power: {batch.electricity_usage}kWh</div>
+                    <div>Sacks: {batch.sacks_used}</div>
                   </td>
                   
                   {/* Notes */}
                   <td className="px-4 py-4 max-w-xs overflow-hidden text-ellipsis text-gray-500">
-                    {batch.employeeNotes || "—"}
+                    {batch.employee_notes || "—"}
                   </td>
                   
                   {/* Actions */}
