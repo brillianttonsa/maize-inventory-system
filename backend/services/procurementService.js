@@ -6,12 +6,14 @@ export const getOrdersByUser = async (userId) => {
     "SELECT * FROM procurement_orders WHERE user_id=$1 ORDER BY id",
     [userId]
   );
+  
   return result.rows;
 };
 
 // Create a new order 
 export const createOrder = async (userId, order) => {
   const { supplier, quantity, price_per_kg, transport_cost, delivery_date, total_cost, notes } = order;
+
 
   const result = await pool.query(
     `INSERT INTO procurement_orders 
@@ -24,9 +26,10 @@ export const createOrder = async (userId, order) => {
   return result.rows[0];
 };
 
-// ✅ Update an order for a specific user
+//  Update an order for a specific user
 export const updateOrder = async (userId, id, order) => {
   const { supplier, quantity, price_per_kg, transport_cost, delivery_date, total_cost, notes } = order;
+
 
   const result = await pool.query(
     `UPDATE procurement_orders SET 
@@ -45,7 +48,7 @@ export const updateOrder = async (userId, id, order) => {
   return result.rows[0];
 };
 
-// ✅ Delete an order for a specific user
+// Delete an order for a specific user
 export const deleteOrder = async (userId, id) => {
   await pool.query(
     "DELETE FROM procurement_orders WHERE id=$1 AND user_id=$2",

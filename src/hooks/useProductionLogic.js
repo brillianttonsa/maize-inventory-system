@@ -3,6 +3,7 @@ import { productionService } from "../services/productionApi";
 import { getTodayDate } from "../components/utils/todaydate";
 import { resetForm } from "../components/common/ResetForm"; //reset function
 import { checkingValidityCountOfNote, wordCounts } from "../components/common/NotesMaxCount";
+import { formatData } from "../components/utils/formatDate";
 
 const initialFormData = {
   maizeQuantity: "",
@@ -30,7 +31,10 @@ export const useProductionLogic = () => {
   const fetchBatches = async () => {
     try {
       setLoading(true);
-      await productionService.getAll().then(setBatches);
+      const data = await productionService.getAll();
+      const formatted = formatData(data)
+      setBatches(formatted)
+      
     } catch (err) {
       console.error(err);
       setError("Fail searching batches");
@@ -52,7 +56,7 @@ export const useProductionLogic = () => {
     setError(null)
     if (checkingValidityCountOfNote(name,value)) return; // Ensuring notes words are not more than 3
     setFormData((prev) => ({ ...prev, [name]: value }));
-    console.log(formData.notes);
+    
   };
 
   // word counts in notes input
@@ -69,14 +73,14 @@ export const useProductionLogic = () => {
 
     // changing form datas to snake form
     const payload = {
-      maize_quantity: Number(maizeQuantity),
-      flour_output: Number(flourOutput),
-      bran_output: Number(branOutput),
-      water_usage: Number(waterUsage),
-      electricity_usage: Number(electricityUsage),
-      sacks_used: Number(sacksUsed),
-      notes: notes,
-      date: date,
+      maize_quantity: maizeQuantity,
+      flour_output: flourOutput,
+      bran_output: branOutput,
+      water_usage: waterUsage,
+      electricity_usage: electricityUsage,
+      sacks_used: sacksUsed,
+      notes,
+      date,
     };
 
     try {
@@ -84,11 +88,11 @@ export const useProductionLogic = () => {
       ? await productionService.update(editId, payload)
       : await productionService.create(payload);
 
-      setBatches(prev => 
-        editId? prev.map(o => (o.id === editId? newBatch : o)) : [...prev, newBatch]
-      );
-      console.log(formData);
+      const data2 = editId ? batches.map(o => (o.id === editId ?  newBatch : o)) : [...batches,newBatch]
+      const formatted2 = formatData(data2)
+      setBatches(formatted2);
 
+      
       resetForm({initialFormData, setFormData, setEditId})
     } catch (err) {
       console.error(err);
@@ -110,7 +114,6 @@ export const useProductionLogic = () => {
       notes: batch.notes,
       date: batch.date,
     });
-    console.log(formData);
     setEditId(batch.id);
   };
 
@@ -121,8 +124,17 @@ export const useProductionLogic = () => {
 
   // --DELETE--
   const handleDelete = async (id) => {
-      await productionService.remove(id);
-      setBatches(prev => prev.filter(o => o.id !== id) );
+    if (confirm("Are you sure you want to delete this batch data?")) {
+      try {
+        await productionService.remove(id);
+        fetchBatches();
+      } catch (error) {
+        console.error("Error deleting batch:", error);
+        setBatches("Error in deleting batch")
+      }
+    }
+      
+      // setBatches(prev => prev.filter(o => o.id !== id) );
     
   };
 
@@ -133,9 +145,7 @@ export const useProductionLogic = () => {
   const totalPages = Math.ceil(batches.length / itemsPerPage);
   const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
-  console.log(batches);
-  console.log(currentBatches);
-  console.log(formData);
+  
   // --RETURN--
   return {
     formData,

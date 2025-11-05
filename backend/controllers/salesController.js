@@ -3,7 +3,7 @@ import * as salesService from "../services/salesService.js";
 // 🔹 Get sales for the logged-in user
 export const getSales = async (req, res) => {
   try {
-    const userId = req.user.id; // JWT middleware must populate req.user
+    const userId = req.user.id; 
     const sales = await salesService.getAllSales(userId);
     res.json(sales);
   } catch (error) {

@@ -22,15 +22,17 @@ const ProcurementDashboard = () => {
     handleDelete,
     handleCancelEdit,
     paginate,
+    totalCost,
+    loading
   } = useProcurementLogic() // destructuring data and function required
 
   // --- RENDER ---
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 text-gray-900">
+    <div className="text-gray-900 grid grid-cols-1 2xl:grid-cols-3 gap-4">
       
       {/* 1. Procurement Form */}
-      <div className="lg:col-span-1">
+      <div className="2xl:grid-col-1">
         <ProcurementForm 
           formData={formData}
           handleChange={handleChange}
@@ -40,11 +42,12 @@ const ProcurementDashboard = () => {
           handleCancelEdit={handleCancelEdit}
           error={error}
           saving={saving}
+          totalCost={totalCost}
         />
       </div>
 
       {/* 2. Orders Table & Pagination */}
-      <div className="lg:col-span-2">
+      <div className="mt-8 2xl:col-span-2">
         <OrdersTable
           orders={orders} // All orders for export
           currentOrders={currentOrders} // Paginated data for display
@@ -54,6 +57,7 @@ const ProcurementDashboard = () => {
           currentPage={currentPage}
           totalPages={totalPages}
           paginate={paginate}
+          loading={loading}
         />
       </div>
     </div>

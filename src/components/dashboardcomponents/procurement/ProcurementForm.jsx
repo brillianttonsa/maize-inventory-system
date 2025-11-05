@@ -1,3 +1,6 @@
+import { SaveOrUpdateBtn } from "../../common/SaveOrUpdateBtn";
+import { inputClass, labelClass, errorClass, formDivClass, headerFormClass, gridInputClass, totalCostDivClass, h4TotalClass } from "../../common/cssCommon";
+
 // form component
 const ProcurementForm = ({
   formData,
@@ -7,25 +10,21 @@ const ProcurementForm = ({
   handleChange,
   wordCount,
   error,
-  saving
+  saving,
+  totalCost
 }) => {
  
-  const totalAmount = (Number(formData.quantity) * Number(formData.pricePerKg) + Number(formData.transportCost)) || 0;
 
-  // Standardized input class
-  const inputClass =
-    "w-full px-3 py-2 border rounded-md focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-colors bg-white border-gray-300 outline-none";
-
-  return (
-    <div className="p-6 rounded-lg shadow-lg bg-white border border-yellow-200">
-      <h3 className="text-xl font-bold mb-6 text-yellow-700">
-        {editId ? "Edit Order" : "New Maize Order"}
+   return (
+    <div className={formDivClass}>
+      <h3 className={headerFormClass}>
+        {editId ? "Edit Order" : "Record New Maize Order"}
       </h3>
 
       <form onSubmit={handleSaveOrUpdate}>
         {/* Supplier */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1 text-gray-700">
+          <label className={labelClass}>
             Supplier
           </label>
           <input
@@ -39,9 +38,9 @@ const ProcurementForm = ({
         </div>
 
         {/* Quantity & Price */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className={gridInputClass}>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
+            <label className={labelClass}>
               Quantity (kg)
             </label>
             <input
@@ -54,7 +53,7 @@ const ProcurementForm = ({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
+            <label className={labelClass}>
               Price per kg (/=)
             </label>
             <input
@@ -70,9 +69,9 @@ const ProcurementForm = ({
         </div>
 
         {/* Transport & Delivery */}
-        <div className="grid grid-cols-2 gap-4 mb-4">
+        <div className={gridInputClass}>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
+            <label className={labelClass}>
               Transport Cost (/=)
             </label>
             <input
@@ -86,7 +85,7 @@ const ProcurementForm = ({
             />
           </div>
           <div>
-            <label className="block text-sm font-medium mb-1 text-gray-700">
+            <label className={labelClass}>
               Delivery Date
             </label>
             <input
@@ -101,61 +100,38 @@ const ProcurementForm = ({
         </div>
 
       {/* total cost display */}
-        <div className="mb-4 p-3 bg-green-50 rounded-md text-center border border-green-200">
-            <h4 className="text-md font-bold text-green-700">TOTAL COST: {totalAmount.toFixed(2)}/=</h4>
+        <div className={totalCostDivClass}>
+            <h4 className={h4TotalClass}>TOTAL COST: {totalCost}/=</h4>
         </div>
 
         {/* Notes */}
         <div className="mb-4">
-          <label className="block text-sm font-medium mb-1 text-gray-700">
+          <label className={labelClass}>
             Notes
           </label>
-          <textarea
+          <input
+            type="text"
             name="notes"
             value={formData.notes}
             onChange={handleChange}
-            rows="3"
+            required
             className={inputClass}
-          ></textarea>
+          ></input>
           <p
             className="text-xs mt-1"
           >
             {wordCount}/3 words (Max)
           </p>
         </div>
-        {error && <p className="text-sm text-red-400 font-bold bg-red-200 border rounded text-center mb-2 p-2">{error}</p>}
+        {error && <p className={errorClass}>{error}</p>}
 
         {/* Conditional Buttons */}
-        {editId ? (
-            <div className="flex gap-4">
-              {/* Cancel Button */}
-              <button 
-                type="button" 
-                onClick={handleCancelEdit}
-                className="w-full py-2 px-4 bg-gray-500 text-white font-medium rounded-md hover:bg-gray-600 transition-colors"
-                disabled={saving}
-              >
-                Cancel Edit
-              </button>
-              {/* Update Button */}
-              <button 
-                type="submit" 
-                className="w-full py-2 px-4 bg-blue-500 text-white font-medium rounded-md hover:bg-blue-600 transition-colors"
-                disabled={saving}
-              >
-                {saving ? "Updating..." : "Update Sale"}
-              </button>
-            </div>
-          ) : (
-            // Record Button 
-            <button
-              type="submit"
-              className="w-full py-2 px-4 bg-yellow-500 text-white font-medium rounded-md hover:bg-yellow-600 transition-colors"
-              disabled={saving}
-            >
-              {saving ? "Saving..." : "Place Order"}
-            </button>
-          )}
+        <SaveOrUpdateBtn
+          editId={editId}
+          handleCancelEdit={handleCancelEdit}
+          saving={saving}
+          type={"Order"}
+        />
       </form>
     </div>
   );

@@ -2,6 +2,7 @@ import ExportCSVButton from "../../common/ExportCSVButton";
 import TablePagination from '../../common/TablePagination';
 import TableActions from '../../common/TableActions';
 import { PRODUCTION_HEADERS, productionDataMapper } from "../../data/CSVData";
+import { tableDiv2Class, tableDivClass, thClass } from "../../common/cssCommon";
 
 
 const ProductionTable = ({
@@ -18,7 +19,9 @@ const ProductionTable = ({
     
 
   return (
-    <div className="p-6 rounded-lg shadow-lg bg-white border border-yellow-200">
+    <div className={tableDivClass}>
+
+      {/* Header and Export Button */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-yellow-700">Production Batches</h3>
         <ExportCSVButton
@@ -30,12 +33,12 @@ const ProductionTable = ({
         />
       </div>
 
-      <div className="overflow-x-auto shadow-sm rounded-lg border border-gray-100">
-        <table className="min-w-full divide-y divide-gray-200 italic">
+      <div className={tableDiv2Class}>
+        <table className="min-w-full divide-y divide-gray-200 ">
           <thead className="bg-yellow-100">
             <tr>
-              {["S/N", "Input", "Outputs", "Resources", "Notes", "Action"].map(header => (
-                  <th key={header} className="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-yellow-700 whitespace-nowrap">
+              {["S/N","Date", "Input", "Outputs", "Resources", "Notes", "Action"].map(header => (
+                  <th key={header} className={thClass}>
                       {header}
                   </th>
               ))}
@@ -59,7 +62,12 @@ const ProductionTable = ({
                   {/* Batch Number (S/N) & Date */}
                   <td className="px-4 py-4 whitespace-nowrap">
                     <div className="font-medium text-gray-900">{indexOfFirst + index + 1}</div>
-                    <div className="text-sm text-gray-500">{batch.date}</div>
+                    
+                  </td>
+
+                  {/* date */}
+                  <td>
+                  <div className="text-sm text-gray-500">{batch.date}</div>
                   </td>
 
                   {/* Maize Input */}
@@ -82,7 +90,7 @@ const ProductionTable = ({
                   
                   {/* Notes */}
                   <td className="px-4 py-4 max-w-xs overflow-hidden text-ellipsis text-gray-500">
-                    {batch.employee_notes || "—"}
+                    {batch.notes || "—"}
                   </td>
                   
                   {/* Actions */}

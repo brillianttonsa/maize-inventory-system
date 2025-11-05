@@ -1,7 +1,5 @@
 
-import React from "react";
-import { useSalesLogic } from "../components/dashboardcomponents/sales/useSalesLogic";
-import { exportSalesToCSV } from "../components/dashboardcomponents/sales/salesCsvExporter";
+import { useSalesLogic } from "../hooks/useSalesLogic";
 import SalesForm from "../components/dashboardcomponents/sales/salesForm";
 import SalesTable from "../components/dashboardcomponents/sales/SalesTable";
 
@@ -9,10 +7,12 @@ const Sales = () => {
   
   const {
     formData,
-    allSales,
+    sales,
+    wordCount,
     currentSales,
     loading,
     saving,
+    error,
     editId,
     currentPage,
     totalPages,
@@ -22,35 +22,41 @@ const Sales = () => {
     handleDelete,
     handleEdit,
     handleCancelEdit,
-    setCurrentPage,
+    paginate,
+    totalCost
   } = useSalesLogic();
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-      
+    <div className="text-gray-900 grid grid-cols-1 2xl:grid-cols-3 gap-4">
+      <div className="2xl:grid-col-1">
       {/* Sales Form */}
       <SalesForm
         formData={formData}
         handleChange={handleChange}
+        wordCount={wordCount}
         handleSaveOrUpdate={handleSaveOrUpdate}
         editId={editId}
         handleCancelEdit={handleCancelEdit}
         saving={saving}
+        error={error}
+        totalCost={totalCost}
       />
+      </div>
 
+      <div className="mt-8 2xl:col-span-2">
       {/* Sales Table */}
       <SalesTable
-        allSales={allSales}
+        sales={sales}
         currentSales={currentSales}
         loading={loading}
         indexOfFirst={indexOfFirst}
         totalPages={totalPages}
         currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
         handleDelete={handleDelete}
         handleEdit={handleEdit}
-        handleExportCSV={exportSalesToCSV}
+        paginate={paginate}
       />
+      </div>
     </div>
   );
 };

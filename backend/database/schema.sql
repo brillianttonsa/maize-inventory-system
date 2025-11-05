@@ -18,8 +18,8 @@ CREATE TABLE production_batches (
     water_usage INT NOT NULL,
     electricity_usage INT NOT NULL,
     sacks_used INT NOT NULL,
-    employee_notes TEXT,
-    date DATE DEFAULT CURRENT_DATE,
+    notes TEXT,
+    date DATE NOT NULL,
     created_at TIMESTAMP DEFAULT NOW()
 );
 
@@ -57,3 +57,21 @@ CREATE TABLE sales (
     notes VARCHAR(200),
     date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+
+-- expenses
+CREATE TABLE IF NOT EXISTS expenses (
+  id SERIAL PRIMARY KEY,
+  user_id INT REFERENCES users(id) ON DELETE CASCADE,
+  date DATE NOT NULL,
+  category TEXT NOT NULL,
+  unit_value NUMERIC,
+  amount BIGINT NOT NULL,
+  paid_by TEXT,
+  method TEXT,
+  description TEXT,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT now(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT now()
+);
+
+

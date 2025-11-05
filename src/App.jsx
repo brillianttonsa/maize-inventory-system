@@ -12,16 +12,18 @@ import TermsPage from "./pages/legal/TermsPage"
 import PrivacyPolicyPage from "./pages/legal/PrivacypolicyPage"
 
 
-import { Dashboard } from "./dashboardpages/Dashboard"
+import Dashboard from "./dashboardpages/Dashboard"
 import Layout from "./components/dashboardcomponents/Sidebar"
+import Inventory from "./dashboardpages/Inventory"
 import Procurement from "./dashboardpages/Procurement"
 import Production from "./dashboardpages/Production"
 import Sales from "./dashboardpages/Sales"
 import Reports from "./dashboardpages/Reports"
-import { Analytics } from "./dashboardpages/Analytics"
-import { Settings } from "./dashboardpages/Settings"
+import Expenses from "./dashboardpages/Expenses"
+import Analytics from "./dashboardpages/Analytics"
+import Settings from "./dashboardpages/Settings"
 
-
+import { Practice } from "./Practice"
 // protecting routes
 import { AuthProvider } from "./context/AuthContext"
 import ProtectedRoute from "./context/ProtectedRoute"
@@ -32,11 +34,14 @@ export default function App() {
       <AuthProvider>
         <Router>
           <Routes>
+            
+
             <Route path="/" element={<Home/>}/>
             <Route path="/about" element={<About/>}/>
             <Route path="/contact" element={<Contact/>}/>
             <Route path="/signup" element={<Signup/>}/>
             <Route path="/login" element={<Login/>}/>
+            <Route path="/practice" element={<Practice/>}/>
             <Route path="/reset-password" element={<ResetPassword/>}/>
             <Route path="/terms-of-service" element={<TermsPage/>}/>
             <Route path="private-policy" element={<PrivacyPolicyPage/>}/>
@@ -46,6 +51,14 @@ export default function App() {
                 <Dashboard />
               </Layout>
               </ProtectedRoute>
+            } />
+
+            <Route path="/inventory" element={
+              <ProtectedRoute>
+              <Layout>
+              <Inventory />
+            </Layout>
+            </ProtectedRoute>
             } />
 
             
@@ -78,6 +91,14 @@ export default function App() {
               <ProtectedRoute>
               <Layout>
               <Analytics />
+            </Layout>
+            </ProtectedRoute>
+            } />
+
+            <Route path="/expenses" element={
+              <ProtectedRoute>
+              <Layout>
+              <Expenses />
             </Layout>
             </ProtectedRoute>
             } />

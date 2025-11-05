@@ -4,11 +4,7 @@ import * as productionService from "../services/productionService.js";
 export const getBatches = async (req, res) => {
   try {
     const userId = req.user.id;
-    const batches = (await productionService.getBatchesByUser(userId)).map(b => ({
-      ...b,
-      date: b.date
-    }));
-    
+    const batches = await productionService.getBatchesByUser(userId)
     res.json(batches);
   } catch (err) {
     console.error(err);

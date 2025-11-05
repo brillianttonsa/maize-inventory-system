@@ -3,7 +3,7 @@ import pool from "../config/db.js";
 // 🔹 Get all sales for a specific user
 export const getAllSales = async (userId) => {
   const { rows } = await pool.query(
-    "SELECT * FROM sales WHERE user_id = $1 ORDER BY id DESC",
+    "SELECT * FROM sales WHERE user_id = $1 ORDER BY id",
     [userId]
   );
   return rows;
@@ -21,9 +21,9 @@ export const createSale = async (sale, userId) => {
     delivery_address,
     payment_method,
     notes,
+    total_amount
   } = sale;
 
-  const total_amount = quantity * price_per_kg + delivery_cost;
 
   const query = `
     INSERT INTO sales (
@@ -64,9 +64,9 @@ export const updateSale = async (id, sale, userId) => {
     delivery_address,
     payment_method,
     notes,
+    total_amount
   } = sale;
 
-  const total_amount = quantity * price_per_kg + delivery_cost;
 
   const query = `
     UPDATE sales

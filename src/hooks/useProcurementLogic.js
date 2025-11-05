@@ -3,6 +3,7 @@ import { procurementService } from "../services/procurementApi";
 import { getTodayDate } from "../components/utils/todaydate";
 import { resetForm } from "../components/common/ResetForm"; //reset function
 import { checkingValidityCountOfNote, wordCounts } from "../components/common/NotesMaxCount";
+import { formatData } from "../components/utils/formatDate";
 
 const initialFormData = {
     supplier: "",
@@ -28,9 +29,13 @@ export const useProcurementLogic = () => {
     
     try{
       setLoading(true);
-      await procurementService.getAll().then(setOrders);
+      const data = await procurementService.getAll();
+      
+      const formatted = formatData(data)
+      console.log(formatted);
+      setOrders(formatted)
     }catch(error){
-        console.log(error);
+        console.error(error);
         setError("Fail searching orders");
     } finally{
       setLoading(false)
@@ -52,8 +57,11 @@ export const useProcurementLogic = () => {
   };
 
   // word counts in notes input
-  const wordCount = wordCounts(formData)
+  const wordCount = wordCounts(formData);
 
+  const {  quantity, pricePerKg, transportCost } = formData;
+
+  const totalCost = (((+quantity * +pricePerKg) + +transportCost)).toFixed(2)
 
   // --- SUBMIT / UPDATE---
   const handleSaveOrUpdate = async (e) => {
@@ -65,12 +73,12 @@ export const useProcurementLogic = () => {
     // changing form datas to snake form
     const payload = {
       supplier,
-      quantity: Number(quantity),
-      price_per_kg: Number(pricePerKg),
-      transport_cost: Number(transportCost),
+      quantity: quantity,
+      price_per_kg: pricePerKg,
+      transport_cost: transportCost,
       delivery_date: deliveryDate,
       notes,
-      total_cost: Number(((quantity * pricePerKg) + transportCost)).toFixed(2),
+      total_cost: totalCost
     };
 
     try {
@@ -78,14 +86,15 @@ export const useProcurementLogic = () => {
         ? await procurementService.update(editId, payload)
         : await procurementService.create(payload);
 
-      setOrders(prev =>
-        editId ? prev.map(o => (o.id === editId ?  newOrder : o)) : [...prev,newOrder]
-      );
-
+      
+      const data2 = editId ? orders.map(o => (o.id === editId ?  newOrder : o)) : [...orders,newOrder]
+      const formatted2 = formatData(data2)
+      setOrders(formatted2);
+      
       resetForm({initialFormData, setFormData, setEditId})
     } catch (err) {
       console.error(err);
-      setError("Order record fail")
+      setError(`Failed to ${editId ? "update" : "save"} order.`,);
     } finally {
       setSaving(false)     
     }
@@ -111,8 +120,17 @@ export const useProcurementLogic = () => {
 
   // --- DELETE ---
   const handleDelete = async (id) => {
-    await procurementService.remove(id);
-    setOrders(prev => prev.filter(o => o.id !== id));
+    if (confirm("Are sure you want to delete this order data?")){
+      try{
+        await procurementService.remove(id);
+        setOrders(prev => prev.filter(o => o.id !== id)); 
+
+      } catch (error) {
+        console.error("Error deleting order:", error);
+        setError("Error in deleting order")
+      }
+    }
+    
   };
 
 
@@ -142,5 +160,6 @@ export const useProcurementLogic = () => {
     totalPages,
     currentPage,
     paginate,
+    totalCost
   };
 };

@@ -19,14 +19,15 @@ export const createBatch = async (userId, batchData) => {
     electricity_usage,
     sacks_used,
     notes,
+    date
   } = batchData
 
   const result = await pool.query(
     `INSERT INTO production_batches 
-      (user_id, maize_quantity, flour_output, bran_output, water_usage, electricity_usage, sacks_used, employee_notes)
-     VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+      (user_id, maize_quantity, flour_output, bran_output, water_usage, electricity_usage, sacks_used, notes, date)
+     VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
      RETURNING *`,
-    [userId, maize_quantity, flour_output, bran_output, water_usage, electricity_usage, sacks_used, notes]
+    [userId, maize_quantity, flour_output, bran_output, water_usage, electricity_usage, sacks_used, notes, date]
   )
   return result.rows[0]
 }
@@ -41,6 +42,7 @@ export const updateBatch = async (userId, batchId, batchData) => {
     electricity_usage,
     sacks_used,
     notes,
+    date
   } = batchData
 
   const result = await pool.query(
@@ -51,10 +53,11 @@ export const updateBatch = async (userId, batchId, batchData) => {
       water_usage=$4,
       electricity_usage=$5,
       sacks_used=$6,
-      employee_notes=$7
-     WHERE id=$8 AND user_id=$9
+      notes=$7,
+      date=$8
+     WHERE id=$9 AND user_id=$10
      RETURNING *`,
-     [maize_quantity, flour_output, bran_output, water_usage, electricity_usage, sacks_used, notes, batchId, userId]
+     [maize_quantity, flour_output, bran_output, water_usage, electricity_usage, sacks_used, notes, date, batchId, userId]
   )
   return result.rows[0]
 }

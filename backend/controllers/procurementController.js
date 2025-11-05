@@ -4,11 +4,7 @@ import * as procurementService from "../services/procurementService.js";
 export const getOrders = async (req, res) => {
   try {
     const userId = req.user.id;
-    const orders = (await procurementService.getOrdersByUser(userId)).map(b => ({
-      ...b,
-      delivery_date: b.delivery_date
-    }));
-
+    const orders = await procurementService.getOrdersByUser(userId)
     res.json(orders);
   } catch (err) {
     console.error(err);
@@ -24,7 +20,7 @@ export const createOrder = async (req, res) => {
     res.status(201).json(newOrder);
   } catch (err) {
     console.error(err)
-    res.status(500).json({ message: err.message });
+    res.status(500).json({ error: "Failed to record order"});
   }
 };
 
@@ -50,6 +46,6 @@ export const deleteOrder = async (req, res) => {
     res.json({ message: "Order deleted successfully" });
   } catch (err) {
     console.error(err)
-    res.status(500).json({ rror: "Failed to delete order." });
+    res.status(500).json({ error: "Failed to delete order." });
   }
 };

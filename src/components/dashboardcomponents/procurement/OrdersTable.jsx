@@ -2,6 +2,7 @@ import TablePagination from "../../common/TablePagination";
 import TableActions from "../../common/TableActions";
 import ExportCSVButton from "../../common/ExportCSVButton";
 import { PROCUREMENT_HEADERS, procurementDataMapper } from "../../data/CSVData";
+import { tableDiv2Class, tableDivClass, thClass } from "../../common/cssCommon";
 
 //table component
 const OrdersTable = ({
@@ -13,12 +14,14 @@ const OrdersTable = ({
   currentPage,
   totalPages,
   paginate,
-  loading
+  loading,
 }) => {
 
   
   return (
-    <div className="p-6 rounded-lg shadow-lg bg-white border border-yellow-200">
+    <div className={tableDivClass}>
+
+      {/* Header and Export Button */}
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-xl font-bold text-yellow-700">Recent Orders</h3>
         <ExportCSVButton 
@@ -30,12 +33,12 @@ const OrdersTable = ({
         />
       </div> 
 
-      <div className="overflow-x-auto shadow-sm rounded-lg border border-gray-100">
+      <div className={tableDiv2Class}>
         <table className="min-w-full divide-y divide-gray-200 ">
           <thead className="bg-yellow-100">
             <tr>
-                {["S/N", "Supplier", "Quantity / Price", "Transport Cost", "Total Cost", "Delivery Date","Notes", "Action"].map(header => (
-                    <th key={header} className="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-yellow-700">
+                {["S/N", "Supplier", "Quantity", "Transport Cost", "Total Cost", "Delivery Date","Notes", "Action"].map(header => (
+                    <th key={header} className={thClass}>
                         {header}
                     </th>
                 ))}
@@ -68,18 +71,20 @@ const OrdersTable = ({
                         {order.quantity} kg
                       </span>
                       <span className="text-xs text-gray-500">
-                        @{order.price_per_kg || order.pricePerKg}/=
+                        @{order.price_per_kg}/=
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-red-500">
-                    {order.transport_cost || order.transportCost}/=
+                    {order.transport_cost}/=
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap font-bold text-right text-green-600">
-                    {order.total_cost || order.totalCost}/=
+                    {order.total_cost}/=
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">
-                    {new Date(order.delivery_date || order.deliveryDate).toLocaleDateString()}
+                    
+                    {order.delivery_date}
+
                   </td>
                   <td className="px-4 py-4 max-w-xs overflow-hidden text-ellipsis text-gray-700">
                     {order.notes || "—"}
