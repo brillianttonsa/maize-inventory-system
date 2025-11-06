@@ -61,9 +61,9 @@ export const useSalesLogic = () => {
 
   const wordCount = wordCounts(formData);
 
-  const { quantity, pricePerKg, deliveryCost} = formData;
+  const { quantity, pricePerKg} = formData;
 
-  const totalCost = (+(quantity * +pricePerKg) + +deliveryCost).toFixed(2);
+  const totalCost = (+(quantity * +pricePerKg)).toFixed(2);
 
   // --- Combined Submit/Update Logic ---
   const handleSaveOrUpdate = async (e) => {

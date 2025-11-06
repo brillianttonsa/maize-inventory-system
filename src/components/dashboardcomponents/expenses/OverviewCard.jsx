@@ -6,7 +6,7 @@ const OverviewCard = ({ title, value, icon: Icon, color }) => (
     </div>
     <p className="text-xs sm:text-sm text-gray-500 mt-2 truncate">{title}</p>
     <h2 className={`text-xl font-bold mt-1 text-gray-900`}>
-      Tsh {value}
+      Tsh {value.toLocaleString()}
     </h2>
   </div>
 );
