@@ -104,7 +104,7 @@ const SalesForm = ({
           {/* notes */}
           <div className="mb-6">
             <label className={labelClass}>Notes (max 3 words)</label>
-            <textarea name="notes" value={formData.notes} onChange={handleChange} rows="3" className={inputClass} required></textarea>
+            <input type="text" name="notes" value={formData.notes} onChange={handleChange} placeholder="eg. flour sold" className={inputClass} required/>
             <p className="text-sm text-gray-500 mt-1">{wordCount}/3 words</p>
           </div>
 

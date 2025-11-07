@@ -21,16 +21,17 @@ export const createSale = async (sale, userId) => {
     delivery_address,
     payment_method,
     notes,
-    total_amount
+    total_amount,
+    date
   } = sale;
 
 
   const query = `
     INSERT INTO sales (
       customer_name, customer_contact, product_type, quantity, price_per_kg,
-      delivery_cost, delivery_address, payment_method, total_amount, notes, user_id
+      delivery_cost, delivery_address, payment_method, total_amount, notes, date,  user_id
     )
-    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11)
+    VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12)
     RETURNING *;
   `;
 
@@ -45,6 +46,7 @@ export const createSale = async (sale, userId) => {
     payment_method,
     total_amount,
     notes,
+    date,
     userId,
   ];
 
@@ -64,7 +66,8 @@ export const updateSale = async (id, sale, userId) => {
     delivery_address,
     payment_method,
     notes,
-    total_amount
+    total_amount,
+    date
   } = sale;
 
 
@@ -73,8 +76,8 @@ export const updateSale = async (id, sale, userId) => {
     SET customer_name=$1, customer_contact=$2, product_type=$3,
         quantity=$4, price_per_kg=$5, delivery_cost=$6,
         delivery_address=$7, payment_method=$8,
-        total_amount=$9, notes=$10
-    WHERE id=$11 AND user_id=$12
+        total_amount=$9, notes=$10, date=$11,
+    WHERE id=$12 AND user_id=$13
     RETURNING *;
   `;
 
@@ -89,6 +92,7 @@ export const updateSale = async (id, sale, userId) => {
     payment_method,
     total_amount,
     notes,
+    date,
     id,
     userId,
   ];

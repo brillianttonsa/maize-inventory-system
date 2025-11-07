@@ -44,7 +44,7 @@ CREATE TABLE procurement_orders (
 -- sales
 CREATE TABLE sales (
     id SERIAL PRIMARY KEY,
-    user_id INT REFERENCES users(id) ON DELETE CASCADE
+    user_id INT REFERENCES users(id) ON DELETE CASCADE,
     customer_name VARCHAR(100) NOT NULL,
     customer_contact VARCHAR(50) NOT NULL,
     product_type VARCHAR(20) CHECK (product_type IN ('flour', 'bran')) NOT NULL,
@@ -55,7 +55,9 @@ CREATE TABLE sales (
     payment_method VARCHAR(30) CHECK (payment_method IN ('cash', 'bank_transfer', 'mobile_money')) NOT NULL,
     total_amount DECIMAL(12, 2) NOT NULL,
     notes VARCHAR(200),
-    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    date DATE NOT NULL,
+    created_at TIMESTAMP DEFAULT NOW(),
+    updated_at TIMESTAMP DEFAULT NOW()
 );
 
 
