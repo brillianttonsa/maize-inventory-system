@@ -83,3 +83,17 @@ export const expenseDataMapper = (expense, index) => [
   expense.method,
 ]
 
+export const INVENTORY_HEADERS = [ 
+  "S/N", "Date", "Item", "Quantity In", "Quantity Out", "Source/Destination", "Balance", "Remarks"
+]
+
+export const inventoryDataMapper = (inventory, index) => [
+  index + 1,
+  inventory.date?.split("T")[0],
+  inventory.item,
+  inventory.quantityIn,
+  inventory.quantityOut,
+  inventory.source || inventory.destination || "",
+  inventory.balance ?? 0,
+  inventory.remarks || ""
+]
