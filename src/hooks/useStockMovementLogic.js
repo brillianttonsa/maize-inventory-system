@@ -22,8 +22,6 @@ export default function useStockMovement(movements, rowsPerPage = 7) {
 
   const paginatedMovements = useMemo(() => {
     return filteredMovements
-      .slice()
-      .reverse()
       .slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
   }, [filteredMovements, currentPage, rowsPerPage]);
 

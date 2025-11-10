@@ -36,11 +36,17 @@ export default function useInventoryHook() {
   //  Fetching inventory movements
   useEffect(() => {
     async function fetchMovements() {
-      const data = await inventoryService.getAllMovements();
-      setMovements(data);
+      try {
+        const data = await inventoryService.getAllMovements();
+        setMovements(data);
+      } catch (err) {
+        console.error("Failed to fetch inventory movements:", err);
+        setMovements([]); // fallback so the table doesn't crash
+      }
     }
     fetchMovements();
   }, []);
+  
 
   //  Calculate current stocks
   const currentStocks = useMemo(() => {

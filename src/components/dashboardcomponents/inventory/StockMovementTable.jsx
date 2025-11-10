@@ -73,7 +73,14 @@ export default function StockMovementTable({ movements }) {
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedMovements.map((m, index) => (
+          {paginatedMovements.length === 0 ? (
+  <tr>
+    <td colSpan={8} className="text-center py-4 text-gray-500">
+      No movements available
+    </td>
+  </tr>
+) :(
+            paginatedMovements.map((m, index) => (
               <tr key={index} className="hover:bg-yellow-50/50 transition-colors">
                 <td className="px-4 py-3 text-sm font-medium text-gray-700">{(currentPage - 1) * ROWS_PER_PAGE + index + 1}</td>
                 <td className="px-4 py-3 text-sm">{m.date?.split("T")[0]}</td>
@@ -84,7 +91,7 @@ export default function StockMovementTable({ movements }) {
                 <td className="px-4 py-3 text-sm font-bold text-blue-700">{m.balance}</td>
                 <td className="px-4 py-3 text-xs text-gray-500">{m.remarks}</td>
               </tr>
-            ))}
+            )))}
           </tbody>
         </table>
       </div>
