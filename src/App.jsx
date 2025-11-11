@@ -1,4 +1,5 @@
 import { BrowserRouter as Router, Route, Routes} from "react-router-dom"
+import ScrollToTop from "./components/ScrollToTop"
 
 // pages
 import Home from "./pages/Home"
@@ -33,6 +34,8 @@ export default function App() {
   return (
       <AuthProvider>
         <Router>
+        <ScrollToTop/>
+
           <Routes>
             
 
