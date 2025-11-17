@@ -117,7 +117,7 @@ const ExpenseTable = ({
                                     <td className="px-4 py-3 whitespace-nowrap text-sm font-medium text-blue-600">
                                         {getUnitDisplay(expense) || "-"}
                                     </td>
-                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-red-600">{(expense.amount).toLocaleString()}</td>
+                                    <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-red-600">{Number(expense.amount).toLocaleString()}</td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm">{expense.paid_by}</td>
                                     <td className="px-4 py-3 whitespace-nowrap text-sm">{expense.method}</td>
                                     <td className="px-4 py-3 text-sm max-w-xs">{expense.notes}</td>

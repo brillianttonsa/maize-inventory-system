@@ -199,6 +199,7 @@ export const useExpensesLogic = () => {
       const formatted2 = formatData(data2)
       setExpenses(formatted2);
 
+      fetchExpenses()
       resetForm({initialFormData, setFormData, setEditId})
     } catch (err) {
       console.error(err);
