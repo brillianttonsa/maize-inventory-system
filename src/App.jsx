@@ -24,7 +24,6 @@ import Expenses from "./dashboardpages/Expenses"
 import Analytics from "./dashboardpages/Analytics"
 import Settings from "./dashboardpages/Settings"
 
-import { Practice } from "./Practice"
 // protecting routes
 import { AuthProvider } from "./context/AuthContext"
 import ProtectedRoute from "./context/ProtectedRoute"
@@ -44,7 +43,6 @@ export default function App() {
             <Route path="/contact" element={<Contact/>}/>
             <Route path="/signup" element={<Signup/>}/>
             <Route path="/login" element={<Login/>}/>
-            <Route path="/practice" element={<Practice/>}/>
             <Route path="/reset-password" element={<ResetPassword/>}/>
             <Route path="/terms-of-service" element={<TermsPage/>}/>
             <Route path="private-policy" element={<PrivacyPolicyPage/>}/>
