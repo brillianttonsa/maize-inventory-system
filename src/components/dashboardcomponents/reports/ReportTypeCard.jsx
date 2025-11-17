@@ -1,10 +1,16 @@
-import { FileText, Download } from "lucide-react";
+import { Download, Loader2 } from "lucide-react";
 import { Button } from "./Button";
 import { Card } from "./Card";
 
-export const ReportTypeCard = ({ icon: Icon, title, description, iconColor }) => {
+export const ReportTypeCard = ({ icon: Icon, title, description, iconColor, onDownload, loading }) => {
+  const handleDownload = () => {
+    if (onDownload && !loading) {
+      onDownload();
+    }
+  };
+
   return (
-    <Card className="hover:border-yellow-400">
+    <Card className="hover:border-yellow-400 transition-all">
       <Card.Header>
         <div className="flex items-start gap-4">
           <div className={`flex h-12 w-12 items-center justify-center rounded-lg shadow-md ${iconColor}`}>
@@ -17,14 +23,16 @@ export const ReportTypeCard = ({ icon: Icon, title, description, iconColor }) =>
         </div>
       </Card.Header>
       <Card.Content>
-        <div className="flex gap-3">
-          <Button variant="outline" className="flex-1 gap-2">
-            <FileText className="h-4 w-4" /> View Sample
-          </Button>
-          <Button className="flex-1 gap-2">
-            <Download className="h-4 w-4" /> Download
-          </Button>
-        </div>
+        <Button 
+          className="w-full gap-2" 
+          onClick={handleDownload}
+          disabled={loading}
+        >
+          
+              <Download className="h-4 w-4" /> Download Report
+            
+          
+        </Button>
       </Card.Content>
     </Card>
   );

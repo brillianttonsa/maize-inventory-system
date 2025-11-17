@@ -1,6 +1,6 @@
 
 export const Card = ({ children, className }) => (
-  <div className={`rounded-lg border bg-white text-gray-900 shadow-md transition-all ${className}`}>
+  <div className={`rounded-lg  bg-white text-gray-900 shadow-md transition-all ${className}`}>
     {children}
   </div>
 );
