@@ -16,7 +16,7 @@ const StatCard = ({ title, value, unit, borderColor  }) => {
 
           <div className="flex items-baseline mt-2">
             <h4 className={`text-3xl font-semibold $text-gray-900`}>
-              {value} {unit}
+              {value.toLocaleString()} {unit}
             </h4>
           </div>
         </div>

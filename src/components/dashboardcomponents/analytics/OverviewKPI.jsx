@@ -13,7 +13,7 @@ const OverviewKPI = ({ totals, maize, flour, bran }) => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: index * 0.1 }}
-          className={`p-6 rounded-xl shadow-xl bg-white`}
+          className={`p-6 rounded-xl shadow-xl bg-white border-l-4 border-l-yellow-400`}
         >
             <div className={`p-3 rounded-lg ${kpi.color} w-fit mb-3`}>
               <kpi.icon className="h-6 w-6 text-white" />
@@ -21,7 +21,7 @@ const OverviewKPI = ({ totals, maize, flour, bran }) => {
             
           <div>
             <p className={`text-2xl font-bold text-gray-900 mb-1`}>{kpi.value}</p>
-            <p className={`text-sm text-gray-600`}>{kpi.title}</p>
+            <p className={`text-sm text-yellow-600`}>{kpi.title}</p>
           </div>
         </motion.div>
       ))}

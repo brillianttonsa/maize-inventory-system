@@ -13,7 +13,7 @@ export const getKPIData = ({ totals, maize, flour, bran }) => {
     },
     {
       title: "Total Cost",
-      value: `Tsh ${totals.totalCost.toLocaleString()}`,
+      value: `Tsh ${totals.totalCosts.toLocaleString()}`,
       icon: DollarSign,
       color: "bg-red-500",
     },

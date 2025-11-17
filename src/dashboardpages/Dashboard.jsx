@@ -18,7 +18,8 @@ export default function Dashboard() {
       <motion.div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h2 className="text-3xl font-bold text-gray-800">
-            Welcome back, {currentUser?.name || "User"}! 👋
+            Welcome back,
+            <span className="text-yellow-700">{currentUser?.name || "User"}! 👋</span> 
           </h2>
           <p className="mt-1 text-gray-600">
             Here's what's happening with your production today
