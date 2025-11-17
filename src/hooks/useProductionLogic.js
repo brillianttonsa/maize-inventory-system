@@ -92,7 +92,7 @@ export const useProductionLogic = () => {
       const formatted2 = formatData(data2)
       setBatches(formatted2);
 
-      
+      fetchBatches()
       resetForm({initialFormData, setFormData, setEditId})
     } catch (err) {
       console.error(err);

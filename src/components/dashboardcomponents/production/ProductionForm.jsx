@@ -73,13 +73,14 @@ const ProductionForm = ({
         {/* Employee Notes */}
         <div className="mb-4">
           <label className={labelClass}>    Notes (max 3 words)</label>
-          <textarea
+          <input
+            type="text"
             name="notes"
             value={formData.notes}
             onChange={handleChange}
-            rows="3"
-            className={inputClass} required
-          ></textarea>
+            placeholder="eg 'produced by tonsa'"
+            className={`${inputClass} text-sm`} required
+          />
           <p
             className={`text-xs mt-1`}
           >
