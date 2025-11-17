@@ -42,7 +42,7 @@ const ProcurementDashboard = () => {
           handleCancelEdit={handleCancelEdit}
           error={error}
           saving={saving}
-          totalCost={totalCost}
+          totalCost={Number(totalCost)}
         />
       </div>
 

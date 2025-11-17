@@ -71,15 +71,16 @@ const OrdersTable = ({
                         {order.quantity} kg
                       </span>
                       <span className="text-xs text-gray-500">
-                        @{order.price_per_kg}/=
+                        @{Number(order.price_per_kg).toLocaleString()}/=
                       </span>
                     </div>
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-right text-red-500">
-                    {order.transport_cost}/=
+                    {Number(order.transport_cost).toLocaleString()}/=
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap font-bold text-right text-green-600">
-                    {order.total_cost}/=
+                  {Number(order.total_cost).toLocaleString()}/=
+
                   </td>
                   <td className="px-4 py-4 whitespace-nowrap text-gray-700">
                     

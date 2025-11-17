@@ -58,7 +58,7 @@ const ProcurementForm = ({
             </label>
             <input
               type="number"
-              step="0.01"
+              step="1"
               name="pricePerKg"
               value={formData.pricePerKg}
               onChange={handleChange}
@@ -76,7 +76,7 @@ const ProcurementForm = ({
             </label>
             <input
               type="number"
-              step="0.01"
+              step="50"
               name="transportCost"
               value={formData.transportCost}
               onChange={handleChange}
@@ -101,7 +101,7 @@ const ProcurementForm = ({
 
       {/* total cost display */}
         <div className={totalCostDivClass}>
-            <h4 className={h4TotalClass}>TOTAL COST: {totalCost}/=</h4>
+            <h4 className={h4TotalClass}>TOTAL COST: {totalCost.toLocaleString()}/=</h4>
         </div>
 
         {/* Notes */}
@@ -115,7 +115,8 @@ const ProcurementForm = ({
             value={formData.notes}
             onChange={handleChange}
             required
-            className={inputClass}
+            placeholder="eg 'bought 3 tons'"
+            className={`${inputClass} text-sm`}
           ></input>
           <p
             className="text-xs mt-1"

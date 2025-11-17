@@ -61,7 +61,7 @@ export const useProcurementLogic = () => {
 
   const {  quantity, pricePerKg, transportCost } = formData;
 
-  const totalCost = (((+quantity * +pricePerKg) + +transportCost)).toFixed(2)
+  const totalCost = (((+quantity * +pricePerKg) + +transportCost))
 
   // --- SUBMIT / UPDATE---
   const handleSaveOrUpdate = async (e) => {
@@ -90,7 +90,7 @@ export const useProcurementLogic = () => {
       const data2 = editId ? orders.map(o => (o.id === editId ?  newOrder : o)) : [...orders,newOrder]
       const formatted2 = formatData(data2)
       setOrders(formatted2);
-      
+      fetchOrders()
       resetForm({initialFormData, setFormData, setEditId})
     } catch (err) {
       console.error(err);
