@@ -9,6 +9,7 @@ import expenseRoutes from "./routes/expenseRoutes.js"
 import inventoryRoute from "./routes/inventoryMovements.js"
 import recentActivitiesRoute from "./routes/recentActivitiesRoutes.js"
 import reportsRoutes from "./routes/reportsRoutes.js";
+import settingsRoutes from "./routes/settingsRoutes.js";
 
 
 dotenv.config();
@@ -28,6 +29,7 @@ app.use("/api/expenses", expenseRoutes)
 app.use("/api/inventory", inventoryRoute)
 app.use("/api/recent-activities",recentActivitiesRoute)
 app.use("/api/reports", reportsRoutes);
+app.use("/api/settings", settingsRoutes);
 
 
 // Health check
