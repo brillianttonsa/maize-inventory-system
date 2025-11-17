@@ -1,6 +1,6 @@
 
 import { useSalesLogic } from "../hooks/useSalesLogic";
-import SalesForm from "../components/dashboardcomponents/sales/salesForm";
+import SalesForm from "../components/dashboardcomponents/sales/SalesForm";
 import SalesTable from "../components/dashboardcomponents/sales/SalesTable";
 
 const Sales = () => {
