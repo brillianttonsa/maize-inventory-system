@@ -116,6 +116,7 @@ export const useProcurementLogic = () => {
     // Cancel function
   const handleCancelEdit = () => {
     resetForm({initialFormData, setFormData, setEditId})
+    setError(null)
   };
 
   // --- DELETE ---

@@ -95,6 +95,7 @@ export const useSalesLogic = () => {
       const formatted2 = formatData(data2)
       setSales(formatted2);
 
+      fetchSales()
       resetForm({initialFormData, setFormData, setEditId});
 
     } catch (error) {
@@ -125,6 +126,7 @@ export const useSalesLogic = () => {
 
   const handleCancelEdit = () => {
     resetForm({initialFormData, setFormData, setEditId})
+    setError(null)
   };
 
   const handleDelete = async (id) => {

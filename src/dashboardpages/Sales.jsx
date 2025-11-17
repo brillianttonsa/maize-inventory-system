@@ -39,7 +39,7 @@ const Sales = () => {
         handleCancelEdit={handleCancelEdit}
         saving={saving}
         error={error}
-        totalCost={totalCost}
+        totalCost={Number(totalCost)}
       />
       </div>
 

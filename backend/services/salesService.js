@@ -76,7 +76,7 @@ export const updateSale = async (id, sale, userId) => {
     SET customer_name=$1, customer_contact=$2, product_type=$3,
         quantity=$4, price_per_kg=$5, delivery_cost=$6,
         delivery_address=$7, payment_method=$8,
-        total_amount=$9, notes=$10, date=$11,
+        total_amount=$9, notes=$10, date=$11
     WHERE id=$12 AND user_id=$13
     RETURNING *;
   `;

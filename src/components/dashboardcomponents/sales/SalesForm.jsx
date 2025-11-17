@@ -82,7 +82,7 @@ const SalesForm = ({
           
           {/* Total Calculation Display (Success Green) */}
           <div className={totalCostDivClass}>
-            <h4 className={h4TotalClass}>TOTAL AMOUNT: {totalCost}/=</h4>
+            <h4 className={h4TotalClass}>TOTAL AMOUNT: {totalCost.toLocaleString()}/=</h4>
           </div>
 
           {/* address */}

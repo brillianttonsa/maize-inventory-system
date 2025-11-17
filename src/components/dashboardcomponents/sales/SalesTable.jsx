@@ -77,12 +77,12 @@ const SalesTable = ({
                     <td className="px-4 py-4 whitespace-nowrap text-sm text-gray-700">{sale.delivery_address}</td>
                   
                     <td className='px-4 py-4 whitespace-nowrap text-sm text-gray-700'>
-                      {sale.delivery_cost}
+                      {Number(sale.delivery_cost).toLocaleString()}
                     </td>
 
                     {/* Amount (Highlighting financial success in Green) */}
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="font-bold text-green-700">{sale.total_amount}/=</div>
+                      <div className="font-bold text-green-700">{Number(sale.total_amount).toLocaleString()}/=</div>
                     </td>
 
                     {/* Payment */}
