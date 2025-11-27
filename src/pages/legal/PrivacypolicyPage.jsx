@@ -1,69 +1,116 @@
+import Navbar from "../../components/common/Navbar"
+import { Footer } from "../../components/common/Footer"
+
 const PrivacyPolicy = () => {
   return (
-    <div className="max-w-3xl mx-auto px-4 py-8 text-gray-800">
-      <h1 className="text-3xl font-bold mb-4">Privacy Policy</h1>
-      <p className="mb-2 font-medium">Effective Date: <span className="font-normal">[Insert Date]</span></p>
-      <p className="mb-6 font-medium">Platform Name: <span className="font-normal">MaizeTrackAI</span></p>
+    <>
+      <Navbar />
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 py-12 transition-colors">
+        <div className="max-w-4xl mx-auto px-6 sm:px-8">
+          {/* Header Section */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 mb-8 border-t-4 border-yellow-500 transition-colors">
+            <h1 className="text-4xl font-bold mb-4 text-gray-900 dark:text-gray-100">Privacy Policy</h1>
+            <div className="flex flex-col sm:flex-row sm:gap-8 text-sm text-gray-600 dark:text-gray-400">
+              <p>
+                <strong className="text-gray-900 dark:text-gray-100">Effective Date:</strong> January 1, 2024
+              </p>
+              <p>
+                <strong className="text-gray-900 dark:text-gray-100">Platform Name:</strong> MaizeTrackAI
+              </p>
+            </div>
+          </div>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">1. Information We Collect</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          <li>Account information (name, email, business name)</li>
-          <li>Business data you submit (e.g., inventory, production logs)</li>
-          <li>Device/browser information for analytics</li>
-        </ul>
-      </section>
+          {/* Content Sections */}
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8 transition-colors">
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">
+                1. Information We Collect
+              </h2>
+              <ul className="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300">
+                <li className="pl-2">Account information (name, email, business name)</li>
+                <li className="pl-2">Business data you submit (e.g., inventory, production logs)</li>
+                <li className="pl-2">Device/browser information for analytics</li>
+              </ul>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">2. How We Use Your Data</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          <li>Provide and improve our services</li>
-          <li>Generate reports and forecasts</li>
-          <li>Send service-related emails or alerts</li>
-          <li>Ensure system security and performance</li>
-        </ul>
-      </section>
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">
+                2. How We Use Your Data
+              </h2>
+              <ul className="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300">
+                <li className="pl-2">Provide and improve our services</li>
+                <li className="pl-2">Generate reports and forecasts</li>
+                <li className="pl-2">Send service-related emails or alerts</li>
+                <li className="pl-2">Ensure system security and performance</li>
+              </ul>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">3. Data Sharing</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          <li>We do <strong>not</strong> sell your data to third parties.</li>
-          <li>We may share data with service providers (e.g., hosting, SMS) strictly to operate the platform.</li>
-        </ul>
-      </section>
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">3. Data Sharing</h2>
+              <ul className="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300">
+                <li className="pl-2">
+                  We do <strong className="text-gray-900 dark:text-gray-100">not</strong> sell your data to third
+                  parties.
+                </li>
+                <li className="pl-2">
+                  We may share data with service providers (e.g., hosting, SMS) strictly to operate the platform.
+                </li>
+              </ul>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">4. Data Security</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          <li>Industry-standard encryption and secure hosting</li>
-          <li>You are responsible for keeping your login credentials safe</li>
-        </ul>
-      </section>
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">4. Data Security</h2>
+              <ul className="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300">
+                <li className="pl-2">Industry-standard encryption and secure hosting</li>
+                <li className="pl-2">You are responsible for keeping your login credentials safe</li>
+              </ul>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">5. Your Rights</h2>
-        <ul className="list-disc pl-6 space-y-1">
-          <li>Access, update, or delete your data from your dashboard</li>
-          <li>Request data deletion by contacting us</li>
-        </ul>
-      </section>
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">5. Your Rights</h2>
+              <ul className="list-disc list-inside space-y-3 text-gray-700 dark:text-gray-300">
+                <li className="pl-2">Access, update, or delete your data from your dashboard</li>
+                <li className="pl-2">Request data deletion by contacting us</li>
+              </ul>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">6. Cookies</h2>
-        <p>We may use cookies to remember your preferences and improve user experience.</p>
-      </section>
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">6. Cookies</h2>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                We may use cookies to remember your preferences and improve user experience.
+              </p>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">7. Updates to This Policy</h2>
-        <p>We may update this policy and notify you via email or platform notifications.</p>
-      </section>
+            <section className="mb-8 pb-8 border-b border-gray-200 dark:border-gray-700">
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">
+                7. Updates to This Policy
+              </h2>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                We may update this policy and notify you via email or platform notifications.
+              </p>
+            </section>
 
-      <section className="mb-6">
-        <h2 className="text-xl font-semibold mb-2">8. Contact</h2>
-        <p>For privacy concerns, contact us at: 📧 <span className="underline">[your-email@example.com]</span></p>
-      </section>
-    </div>
-  );
-};
+            <section>
+              <h2 className="text-2xl font-semibold mb-4 text-yellow-600 dark:text-yellow-500">8. Contact</h2>
+              <p className="text-gray-700 dark:text-gray-300 leading-relaxed mb-2">
+                For privacy concerns, contact us at:
+              </p>
+              <p className="text-gray-700 dark:text-gray-300">
+                <strong className="text-yellow-600 dark:text-yellow-500">Email:</strong>{" "}
+                <a
+                  href="mailto:abdullatifmnyamis@gmail.com"
+                  className="text-yellow-600 dark:text-yellow-400 hover:underline"
+                >
+                  abdullatifmnyamis@gmail.com
+                </a>
+              </p>
+            </section>
+          </div>
+        </div>
+      </div>
+      <Footer />
+    </>
+  )
+}
 
-export default PrivacyPolicy;
+export default PrivacyPolicy

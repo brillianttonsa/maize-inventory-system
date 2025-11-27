@@ -1,18 +1,38 @@
-import { getComprehensiveReportData } from "../services/comprehensiveReportService.js";
-import pool from "../config/db.js";
-import path from "path";
-import { fileURLToPath } from "url";
+import { getComprehensiveReportData } from "../services/comprehensiveReportService.js"
+import pool from "../config/db.js"
+import path from "path"
+import { fileURLToPath } from "url"
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+
+const formatNumber = (num) => {
+  if (num === null || num === undefined || isNaN(num)) return "0"
+  return new Intl.NumberFormat("en-US", {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(Number(num))
+}
+
+const escapeHtml = (text) => {
+  if (!text) return ""
+  const map = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#039;",
+  }
+  return String(text).replace(/[&<>"']/g, (m) => map[m])
+}
 
 // Generate HTML template for comprehensive report
 const generateHTMLReport = (data, userName) => {
-  const currentDate = new Date().toLocaleDateString('en-US', { 
-    year: 'numeric', 
-    month: 'long', 
-    day: 'numeric' 
-  });
+  const currentDate = new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  })
 
   return `<!DOCTYPE html>
 <html lang="en">
@@ -27,6 +47,31 @@ const generateHTMLReport = (data, userName) => {
             padding: 0;
             box-sizing: border-box;
         }
+        
+        @media print {
+            @page {
+                size: A4;
+                margin: 1.5cm;
+            }
+            body {
+                background: white !important;
+                padding: 0;
+            }
+            .container {
+                box-shadow: none !important;
+                padding: 0 !important;
+            }
+            .no-print {
+                display: none !important;
+            }
+            .section {
+                page-break-inside: avoid;
+            }
+            .chart-container {
+                page-break-inside: avoid;
+            }
+        }
+        
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             line-height: 1.6;
@@ -34,32 +79,39 @@ const generateHTMLReport = (data, userName) => {
             background: #f5f5f5;
             padding: 20px;
         }
+        
         .container {
             max-width: 1200px;
             margin: 0 auto;
             background: white;
             padding: 40px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
+            border-radius: 8px;
         }
+        
         .header {
             text-align: center;
             border-bottom: 4px solid #eab308;
             padding-bottom: 20px;
             margin-bottom: 40px;
         }
+        
         .header h1 {
             color: #eab308;
             font-size: 2.5em;
             margin-bottom: 10px;
         }
+        
         .header p {
             color: #666;
             font-size: 1.1em;
         }
+        
         .section {
             margin-bottom: 50px;
             page-break-inside: avoid;
         }
+        
         .section-title {
             color: #eab308;
             font-size: 1.8em;
@@ -67,80 +119,84 @@ const generateHTMLReport = (data, userName) => {
             padding-bottom: 10px;
             border-bottom: 2px solid #eab308;
         }
+        
         .summary-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 20px;
             margin-bottom: 30px;
         }
+        
         .summary-card {
-            background: #f9fafb;
+            background: linear-gradient(135deg, #f9fafb 0%, #ffffff 100%);
             padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #eab308;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+            border-radius: 12px;
+            border-left: 5px solid #eab308;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            transition: transform 0.2s;
         }
+        
+        .summary-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.15);
+        }
+        
         .summary-card h3 {
             color: #666;
             font-size: 0.9em;
             margin-bottom: 10px;
             text-transform: uppercase;
+            letter-spacing: 1px;
         }
+        
         .summary-card .value {
             color: #333;
             font-size: 1.8em;
             font-weight: bold;
         }
+        
         .chart-container {
             background: white;
-            padding: 20px;
+            padding: 30px;
             margin: 20px 0;
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-            height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            height: 450px;
         }
+        
         table {
             width: 100%;
             border-collapse: collapse;
             margin: 20px 0;
             background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
         }
+        
         table th, table td {
-            padding: 12px;
+            padding: 15px;
             text-align: left;
-            border-bottom: 1px solid #ddd;
+            border-bottom: 1px solid #e5e7eb;
         }
+        
         table th {
-            background: #eab308;
+            background: linear-gradient(135deg, #eab308 0%, #ca8a04 100%);
             color: white;
             font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.85em;
+            letter-spacing: 0.5px;
         }
+        
         table tr:hover {
-            background: #f9fafb;
+            background: #fef3c7;
         }
-        .notes-section {
-            background: #fff9e6;
-            padding: 20px;
-            border-radius: 8px;
-            border-left: 4px solid #eab308;
-            margin-top: 20px;
+        
+        table tr:last-child td {
+            border-bottom: none;
         }
-        .note-item {
-            padding: 10px;
-            margin-bottom: 10px;
-            background: white;
-            border-radius: 4px;
-            border-left: 3px solid #eab308;
-        }
-        .note-item .note-type {
-            font-weight: bold;
-            color: #eab308;
-            margin-right: 10px;
-        }
-        .note-item .note-date {
-            color: #666;
-            font-size: 0.9em;
-        }
+        
         .footer {
             text-align: center;
             margin-top: 50px;
@@ -148,26 +204,42 @@ const generateHTMLReport = (data, userName) => {
             border-top: 2px solid #eab308;
             color: #666;
         }
-        @media print {
-            body {
-                background: white;
-                padding: 0;
-            }
-            .container {
-                box-shadow: none;
-                padding: 20px;
-            }
-            .section {
-                page-break-inside: avoid;
-            }
+        
+        .print-button {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #eab308;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+            z-index: 1000;
+        }
+        
+        .print-button:hover {
+            background: #ca8a04;
+        }
+        
+        .positive {
+            color: #10b981 !important;
+        }
+        
+        .negative {
+            color: #ef4444 !important;
         }
     </style>
 </head>
 <body>
+    <button class="print-button no-print" onclick="window.print()">Print / Save as PDF</button>
+    
     <div class="container">
         <div class="header">
             <h1>Comprehensive Business Report</h1>
-            <p>Generated for: ${userName || 'User'}</p>
+            <p>Generated for: ${escapeHtml(userName)}</p>
             <p>Date: ${currentDate}</p>
         </div>
 
@@ -177,21 +249,21 @@ const generateHTMLReport = (data, userName) => {
             <div class="summary-grid">
                 <div class="summary-card">
                     <h3>Total Revenue</h3>
-                    <div class="value">${formatNumber(data.financial.totalRevenue)} Tsh</div>
+                    <div class="value positive">${formatNumber(data.financial.totalRevenue)} Tsh</div>
                 </div>
                 <div class="summary-card">
                     <h3>Total Costs</h3>
                     <div class="value">${formatNumber(data.financial.totalCosts)} Tsh</div>
                 </div>
                 <div class="summary-card">
-                    <h3>Profit</h3>
-                    <div class="value" style="color: ${data.financial.profit >= 0 ? '#10b981' : '#ef4444'}">
+                    <h3>Net Profit</h3>
+                    <div class="value ${data.financial.profit >= 0 ? "positive" : "negative"}">
                         ${formatNumber(data.financial.profit)} Tsh
                     </div>
                 </div>
                 <div class="summary-card">
                     <h3>Profit Margin</h3>
-                    <div class="value">${data.financial.profitMargin}%</div>
+                    <div class="value ${data.financial.profitMargin >= 0 ? "positive" : "negative"}">${data.financial.profitMargin}%</div>
                 </div>
             </div>
         </div>
@@ -202,7 +274,7 @@ const generateHTMLReport = (data, userName) => {
             <div class="summary-grid">
                 <div class="summary-card">
                     <h3>Total Batches</h3>
-                    <div class="value">${data.production.summary.totalBatches}</div>
+                    <div class="value">${data.production.summary.totalBatches || 0}</div>
                 </div>
                 <div class="summary-card">
                     <h3>Maize Processed</h3>
@@ -218,7 +290,7 @@ const generateHTMLReport = (data, userName) => {
                 </div>
                 <div class="summary-card">
                     <h3>Average Efficiency</h3>
-                    <div class="value">${data.production.summary.averageEfficiency}%</div>
+                    <div class="value">${data.production.summary.averageEfficiency || 0}%</div>
                 </div>
             </div>
             
@@ -233,11 +305,11 @@ const generateHTMLReport = (data, userName) => {
             <div class="summary-grid">
                 <div class="summary-card">
                     <h3>Total Orders</h3>
-                    <div class="value">${data.sales.summary.totalOrders}</div>
+                    <div class="value">${data.sales.summary.totalOrders || 0}</div>
                 </div>
                 <div class="summary-card">
                     <h3>Total Revenue</h3>
-                    <div class="value">${formatNumber(data.sales.summary.totalRevenue)} Tsh</div>
+                    <div class="value positive">${formatNumber(data.sales.summary.totalRevenue)} Tsh</div>
                 </div>
                 <div class="summary-card">
                     <h3>Flour Sales</h3>
@@ -257,7 +329,10 @@ const generateHTMLReport = (data, userName) => {
                 <canvas id="revenueChart"></canvas>
             </div>
 
-            <h3 style="margin-top: 30px; margin-bottom: 15px;">Top 5 Customers</h3>
+            ${
+              data.sales.topCustomers && data.sales.topCustomers.length > 0
+                ? `
+            <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Top 5 Customers</h3>
             <table>
                 <thead>
                     <tr>
@@ -267,15 +342,22 @@ const generateHTMLReport = (data, userName) => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.sales.topCustomers.map(c => `
+                    ${data.sales.topCustomers
+                      .map(
+                        (c) => `
                         <tr>
-                            <td>${c.name}</td>
-                            <td>${c.count}</td>
+                            <td>${escapeHtml(c.name || "Unknown")}</td>
+                            <td>${c.count || 0}</td>
                             <td>${formatNumber(c.total)} Tsh</td>
                         </tr>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                 </tbody>
             </table>
+            `
+                : '<p style="color: #666;">No customer data available</p>'
+            }
         </div>
 
         <!-- Procurement Section -->
@@ -284,7 +366,7 @@ const generateHTMLReport = (data, userName) => {
             <div class="summary-grid">
                 <div class="summary-card">
                     <h3>Total Orders</h3>
-                    <div class="value">${data.procurement.summary.totalOrders}</div>
+                    <div class="value">${data.procurement.summary.totalOrders || 0}</div>
                 </div>
                 <div class="summary-card">
                     <h3>Total Quantity</h3>
@@ -300,7 +382,10 @@ const generateHTMLReport = (data, userName) => {
                 </div>
             </div>
 
-            <h3 style="margin-top: 30px; margin-bottom: 15px;">Supplier Performance</h3>
+            ${
+              data.procurement.supplierStats && data.procurement.supplierStats.length > 0
+                ? `
+            <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Supplier Performance</h3>
             <table>
                 <thead>
                     <tr>
@@ -311,16 +396,23 @@ const generateHTMLReport = (data, userName) => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${data.procurement.supplierStats.map(s => `
+                    ${data.procurement.supplierStats
+                      .map(
+                        (s) => `
                         <tr>
-                            <td>${s.name}</td>
-                            <td>${s.orders}</td>
+                            <td>${escapeHtml(s.name || "Unknown")}</td>
+                            <td>${s.orders || 0}</td>
                             <td>${formatNumber(s.totalQuantity)}</td>
                             <td>${formatNumber(s.totalCost)} Tsh</td>
                         </tr>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                 </tbody>
             </table>
+            `
+                : '<p style="color: #666;">No supplier data available</p>'
+            }
         </div>
 
         <!-- Expenses Section -->
@@ -329,15 +421,18 @@ const generateHTMLReport = (data, userName) => {
             <div class="summary-grid">
                 <div class="summary-card">
                     <h3>Total Expenses</h3>
-                    <div class="value">${formatNumber(data.expenses.summary.totalExpenses)} Tsh</div>
+                    <div class="value negative">${formatNumber(data.expenses.summary.totalExpenses)} Tsh</div>
                 </div>
                 <div class="summary-card">
                     <h3>Total Records</h3>
-                    <div class="value">${data.expenses.summary.totalCount}</div>
+                    <div class="value">${data.expenses.summary.totalCount || 0}</div>
                 </div>
             </div>
 
-            <h3 style="margin-top: 30px; margin-bottom: 15px;">Expenses by Category</h3>
+            ${
+              Object.keys(data.expenses.byCategory).length > 0
+                ? `
+            <h3 style="margin-top: 30px; margin-bottom: 15px; color: #333;">Expenses by Category</h3>
             <table>
                 <thead>
                     <tr>
@@ -346,162 +441,180 @@ const generateHTMLReport = (data, userName) => {
                     </tr>
                 </thead>
                 <tbody>
-                    ${Object.entries(data.expenses.byCategory).map(([cat, amount]) => `
+                    ${Object.entries(data.expenses.byCategory)
+                      .map(
+                        ([cat, amount]) => `
                         <tr>
-                            <td>${cat}</td>
+                            <td>${escapeHtml(cat) || "Uncategorized"}</td>
                             <td>${formatNumber(amount)} Tsh</td>
                         </tr>
-                    `).join('')}
+                    `,
+                      )
+                      .join("")}
                 </tbody>
             </table>
+            `
+                : '<p style="color: #666;">No expense data available</p>'
+            }
         </div>
 
-        
-
         <div class="footer">
-            <p>Report generated on ${currentDate}</p>
+            <p><strong>Report generated on ${currentDate}</strong></p>
             <p>MaizeTrack Inventory Management System</p>
+            <p style="margin-top: 10px; font-size: 0.9em;">This is a comprehensive overview of your business operations. For detailed analysis, please refer to individual module reports.</p>
         </div>
     </div>
 
     <script>
         // Production Chart
-        const productionCtx = document.getElementById('productionChart').getContext('2d');
-        new Chart(productionCtx, {
-            type: 'line',
-            data: {
-                labels: ${JSON.stringify(data.production.chartData.map(d => d.period))},
-                datasets: [
-                    {
-                        label: 'Maize Processed (kg)',
-                        data: ${JSON.stringify(data.production.chartData.map(d => d.maizeProcessed || 0))},
-                        borderColor: '#eab308',
-                        backgroundColor: 'rgba(234, 179, 8, 0.1)',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Flour Produced (kg)',
-                        data: ${JSON.stringify(data.production.chartData.map(d => d.flourProduced || 0))},
-                        borderColor: '#10b981',
-                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
-                        tension: 0.4
-                    },
-                    {
-                        label: 'Bran Produced (kg)',
-                        data: ${JSON.stringify(data.production.chartData.map(d => d.branProduced || 0))},
-                        borderColor: '#f59e0b',
-                        backgroundColor: 'rgba(245, 158, 11, 0.1)',
-                        tension: 0.4
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Production Trends Over Time'
-                    }
+        const productionCtx = document.getElementById('productionChart');
+        if (productionCtx) {
+            new Chart(productionCtx.getContext('2d'), {
+                type: 'line',
+                data: {
+                    labels: ${JSON.stringify(data.production.chartData.map((d) => d.period))},
+                    datasets: [
+                        {
+                            label: 'Maize Processed (kg)',
+                            data: ${JSON.stringify(data.production.chartData.map((d) => Number.parseFloat(d.maizeProcessed) || 0))},
+                            borderColor: '#eab308',
+                            backgroundColor: 'rgba(234, 179, 8, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Flour Produced (kg)',
+                            data: ${JSON.stringify(data.production.chartData.map((d) => Number.parseFloat(d.flourProduced) || 0))},
+                            borderColor: '#10b981',
+                            backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        },
+                        {
+                            label: 'Bran Produced (kg)',
+                            data: ${JSON.stringify(data.production.chartData.map((d) => Number.parseFloat(d.branProduced) || 0))},
+                            borderColor: '#f59e0b',
+                            backgroundColor: 'rgba(245, 158, 11, 0.1)',
+                            tension: 0.4,
+                            fill: true
+                        }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Production Trends Over Time',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' kg';
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        });
+            });
+        }
 
         // Revenue vs Expenses Chart
-        const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-        new Chart(revenueCtx, {
-            type: 'bar',
-            data: {
-                labels: ${JSON.stringify(data.sales.chartData.map(d => d.period))},
-                datasets: [
-                    {
-                        label: 'Revenue (Tsh)',
-                        data: ${JSON.stringify(data.sales.chartData.map(d => d.revenue || 0))},
-                        backgroundColor: 'rgba(16, 185, 129, 0.8)',
-                        borderColor: '#10b981',
-                        borderWidth: 1
-                    },
-                    {
-                        label: 'Expenses (Tsh)',
-                        data: ${JSON.stringify(data.sales.chartData.map(d => d.expenses || 0))},
-                        backgroundColor: 'rgba(239, 68, 68, 0.8)',
-                        borderColor: '#ef4444',
-                        borderWidth: 1
-                    }
-                ]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Revenue vs Expenses Over Time'
-                    }
+        const revenueCtx = document.getElementById('revenueChart');
+        if (revenueCtx) {
+            new Chart(revenueCtx.getContext('2d'), {
+                type: 'bar',
+                data: {
+                    labels: ${JSON.stringify(data.sales.chartData.map((d) => d.period))},
+                    datasets: [
+                        {
+                            label: 'Revenue (Tsh)',
+                            data: ${JSON.stringify(data.sales.chartData.map((d) => Number.parseFloat(d.revenue) || 0))},
+                            backgroundColor: 'rgba(16, 185, 129, 0.8)',
+                            borderColor: '#10b981',
+                            borderWidth: 1
+                        },
+                        {
+                            label: 'Expenses (Tsh)',
+                            data: ${JSON.stringify(data.sales.chartData.map((d) => Number.parseFloat(d.expenses) || 0))},
+                            backgroundColor: 'rgba(239, 68, 68, 0.8)',
+                            borderColor: '#ef4444',
+                            borderWidth: 1
+                        }
+                    ]
                 },
-                scales: {
-                    y: {
-                        beginAtZero: true
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        title: {
+                            display: true,
+                            text: 'Revenue vs Expenses Over Time',
+                            font: {
+                                size: 16,
+                                weight: 'bold'
+                            }
+                        },
+                        legend: {
+                            display: true,
+                            position: 'bottom'
+                        }
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            ticks: {
+                                callback: function(value) {
+                                    return value.toLocaleString() + ' Tsh';
+                                }
+                            }
+                        }
                     }
                 }
-            }
-        });
-
-        // Auto-print or download as PDF when loaded
-        window.onload = function() {
-            setTimeout(() => {
-                window.print();
-            }, 1000);
-        };
+            });
+        }
     </script>
 </body>
-</html>`;
-};
-
-// Helper functions
-const formatNumber = (num) => {
-  return new Intl.NumberFormat('en-US').format(Number(num).toFixed(2));
-};
-
-const escapeHtml = (text) => {
-  const map = {
-    '&': '&amp;',
-    '<': '&lt;',
-    '>': '&gt;',
-    '"': '&quot;',
-    "'": '&#039;'
-  };
-  return text.replace(/[&<>"']/g, m => map[m]);
-};
+</html>`
+}
 
 // Generate comprehensive PDF report
 export const generateComprehensiveReport = async (req, res) => {
   try {
-    const userId = req.user.id;
-    
+    const userId = req.user.id
+
     // Get user name from database
-    const userResult = await pool.query("SELECT name, username FROM users WHERE id = $1", [userId]);
-    const userName = userResult.rows[0]?.name || userResult.rows[0]?.username || "User";
+    const userResult = await pool.query("SELECT name, username FROM users WHERE id = $1", [userId])
+    const userName = userResult.rows[0]?.name || userResult.rows[0]?.username || "User"
 
     // Get comprehensive data
-    const data = await getComprehensiveReportData(userId);
+    const data = await getComprehensiveReportData(userId)
 
     // Generate HTML
-    const html = generateHTMLReport(data, userName);
+    const html = generateHTMLReport(data, userName)
 
     // Set headers for HTML response (can be printed as PDF from browser)
-    res.setHeader('Content-Type', 'text/html');
-    res.setHeader('Content-Disposition', `inline; filename="comprehensive_report_${new Date().toISOString().split('T')[0]}.html"`);
-    
-    res.send(html);
-  } catch (error) {
-    console.error("Error generating comprehensive report:", error);
-    res.status(500).json({ message: "Failed to generate comprehensive report", error: error.message });
-  }
-};
+    res.setHeader("Content-Type", "text/html; charset=utf-8")
+    res.setHeader(
+      "Content-Disposition",
+      `inline; filename="comprehensive_report_${new Date().toISOString().split("T")[0]}.html"`,
+    )
 
+    res.send(html)
+  } catch (error) {
+    console.error("Error generating comprehensive report:", error)
+    res.status(500).json({ message: "Failed to generate comprehensive report", error: error.message })
+  }
+}
