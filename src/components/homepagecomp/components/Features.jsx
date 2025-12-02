@@ -1,21 +1,11 @@
-import { Target, Layers, Cpu, BarChart4, Bell, TrendingUp, FileText, Shield, Activity, Globe,  Smartphone, Cloud, Truck, Factory, ShoppingCart, Eye, Clock  } from "lucide-react"; 
+import { Target, Layers, Cpu, BarChart4, Bell, TrendingUp, FileText, Activity, Shield,  Smartphone, Cloud, Truck, Factory, ShoppingCart, Eye, Clock  } from "lucide-react"; 
 
 
 export const FeaturesHome = [
     {
-      title: "Production Tracking",
-      description: "Monitor all stages of maize flour production in real-time.",
-      icon: <Activity   />,
-    },
-    {
       title: "Inventory Management",
       description: "Keep track of raw materials, finished products, and packaging supplies.",
       icon: <BarChart4/>,
-    },
-    {
-      title: "Quality Control",
-      description: "Record and analyze quality metrics throughout the production process.",
-      icon: <Shield/>,
     },
     {
       title: "AI-Powered Forecasting",
@@ -41,12 +31,7 @@ export const FeaturesHome = [
       title: "Cloud Access & Data Backup",
       description: "Access your data anywhere securely, with automatic backups to prevent data loss.",
       icon: <Cloud/>,
-    },
-    {
-      title: "Global Insights",
-      description: "Analyze production, inventory, and market trends from multiple locations.",
-      icon: <Globe/>,
-    },
+    }
 ]
 
 export const WhatMaizefeatures = [
@@ -82,47 +67,19 @@ export const modules = [
     icon: <Truck className="w-10 h-10" />,
     title: "Procurement Management",
     description:
-      "Streamline your entire procurement process from supplier management to purchase order tracking. Monitor inventory levels, manage supplier relationships, and optimize purchasing decisions with real-time data.",
-    color: "from-blue-500 to-blue-600",
-    features: [
-      "Supplier database and performance tracking",
-      "Automated purchase order generation",
-      "Real-time inventory monitoring",
-      "Cost analysis and budget management",
-      "Quality control and inspection tracking",
-      "Supplier payment management",
-      "Contract management and renewals",
-      "Multi-currency support",
-    ],
+      "Streamline your entire procurement process from supplier management to purchase order tracking. Monitor inventory levels, manage supplier relationships, and optimize purchasing decisions with real-time data."
   },
   {
     icon: <Factory className="w-10 h-10" />,
     title: "Production Management",
     description:
-      "Optimize your production processes with comprehensive batch tracking, equipment monitoring, and quality assurance. Schedule production runs, track efficiency metrics, and minimize waste with intelligent analytics.",
-    color: "from-green-500 to-green-600",
-    features: [
-      "Batch tracking and traceability",
-      "Production scheduling and planning",
-      "Compliance and safety monitoring",
-    ],
+      "Optimize your production processes with comprehensive batch tracking. Schedule production runs, track efficiency metrics, and minimize waste with intelligent analytics.",
   },
   {
     icon: <ShoppingCart className="w-10 h-10" />,
     title: "Sales & Distribution",
     description:
       "Manage your entire sales pipeline from customer orders to delivery tracking. Analyze sales performance, forecast demand, and optimize pricing strategies with comprehensive sales analytics.",
-    color: "from-purple-500 to-purple-600",
-    features: [
-      "Customer relationship management",
-      "Order processing and tracking",
-      "Delivery and logistics management",
-      "Sales performance analytics",
-      "Demand forecasting and planning",
-      "Pricing optimization",
-      "Invoice and payment tracking",
-      "Customer portal and self-service",
-    ],
   },
 ]
   
@@ -150,9 +107,10 @@ export const benefits = [
   },
   {
     icon: <Shield className="w-6 h-6" />,
-    title: "Ensure Compliance",
-    description: "Meet industry regulations and quality standards with built-in compliance tracking.",
+    title: "Reduce Operational Risks",
+    description: "Minimize disruptions and unexpected errors through structured workflows and smart monitoring.",
     stat: "99%",
-    statLabel: "Compliance Rate",
+    statLabel: "Risk Reduction",
   },
+  
 ];

@@ -1,71 +1,71 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import axios from "axios";
+import api from "../../services/api"
 
 
 export const ContactForm = () => {
     const [formData, setFormData] = useState({
-        name: "",
-        email: "",
-        subject: "",
-        message: ""
-      });
-      const [status, setStatus] = useState({
-        submitted: false,
-        submitting: false,
-        info: { error: false, msg: null}
-      });
+      name: "",
+      email: "",
+      subject: "",
+      message: ""
+    });
+
+    const [status, setStatus] = useState({
+      submitted: false,
+      submitting: false,
+      info: { error: false, msg: null}
+    });
     
-      const handleChange = (e) => {
-        const {name, value} = e.target;
-        setFormData((prevData) => ({
-          ...prevData,
-          [name]: value
-        }))
-      }
+    const handleChange = (e) => {
+      const {name, value} = e.target;
+      setFormData((prevData) => ({
+        ...prevData,
+        [name]: value
+      }))
+    }
     
-      const handleSubmit = async (e) => {
-        e.preventDefault()
-        setStatus((prevStatus) => ({...prevStatus, submitting:true}));
-    
-        try {
-          const API = import.meta.env.VITE_API_URL
-          const response = await axios.post(`${API}/contact`, formData)
-          
-          if (response.data.success) {
-            setStatus({
-              submitted: true,
-              submitting: false,
-              info: {error: false, msg: "Message sent successfully!"}
-            })
-          
-    
-            // Reset form after successful submission
-            setFormData({
-              name: "",
-              email: "",
-              subject: "",
-              message: "",
-            })
-    
-    
-            // Reset status after 5 seconds
-            setTimeout(() => {
-              setStatus({
-                submitted: false,
-                submitting: false,
-                info: { error: false, msg: null },
-              })
-            }, 3000)
-          }
-        } catch (err) {
+    const handleSubmit = async (e) => {
+      e.preventDefault()
+      setStatus((prevStatus) => ({...prevStatus, submitting:true}));
+  
+      try {
+        const response = await api.post("/contact", formData)
+        
+        if (response.data.success) {
           setStatus({
-            submitted: false,
+            submitted: true,
             submitting: false,
-            info: {error: true, msg: err.response?.data?.message || "Failed to send message. Please try again."}
+            info: {error: false, msg: "Message sent successfully!"}
           })
+        
+  
+          // Reset form after successful submission
+          setFormData({
+            name: "",
+            email: "",
+            subject: "",
+            message: "",
+          })
+  
+  
+          // Reset status after 3 seconds
+          setTimeout(() => {
+            setStatus({
+              submitted: false,
+              submitting: false,
+              info: { error: false, msg: null },
+            })
+          }, 3000)
         }
+      } catch (err) {
+        setStatus({
+          submitted: false,
+          submitting: false,
+          info: {error: true, msg: err.response?.data?.message || "Failed to send message. Please try again."}
+        })
       }
+    }
 
     return (
         <motion.div
@@ -74,7 +74,7 @@ export const ContactForm = () => {
               transition={{ duration: 0.5, delay: 0.4 }}
             >
               <div className="bg-white rounded-lg shadow-md p-8">
-                <h2 className="text-2xl font-bold mb-6 text-gray-800">Send Us a Message</h2>
+                <h2 className="text-2xl font-bold mb-6 text-gray-800">Send me a message</h2>
 
                 {status.info.error && (
                   <div className="mb-4 bg-red-50 border-l-4 border-red-500 p-4 text-red-700">
@@ -147,7 +147,7 @@ export const ContactForm = () => {
                       value={formData.message}
                       onChange={handleChange}
                       required
-                      rows="5"
+                      rows="3"
                       className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:border-transparent"
                       placeholder="Your message here..."
                     ></textarea>

@@ -1,9 +1,9 @@
-import { FeaturesHome } from "./Features"
+import { FeaturesHome } from "./components/Features"
 import {motion} from "framer-motion"
 
 export const FeatureSection = () => {
     return (
-        <section className="py-16 container mx-auto px-4">
+        <section className="py-16 container mx-auto px-6">
             <motion.div
                 className="text-center mb-16"
                 initial={{ opacity: 0, y: 20 }}
@@ -14,7 +14,7 @@ export const FeatureSection = () => {
                     Comprehensive Features for Modern Businesses
                 </h2>
                 <p className="text-lg text-gray-600 max-w-3xl mx-auto">
-                    MaizeTrackAI provides everything you need to run a successful maize processing business, from basic inventory
+                    MaizeTrack AI provides everything you need to run a successful maize processing business, from basic inventory
                     management to advanced AI-powered analytics and forecasting.
                 </p>
             </motion.div>

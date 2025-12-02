@@ -22,21 +22,14 @@ export const HeroSection = () => {
                     🌽 Complete Maize Processing Solution
                 </motion.div>
                 <motion.h1
-                    className="text-4xl md:text-5xl lg:text-6xl font-bold mb-6 leading-tight"
+                    className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight"
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ delay: 0.2, duration: 0.8 }}
                 >
-                    Transform Your <span className=" text-green-400">Maize Processing</span> Business
+                    Transform Your <span className=" text-green-400">Maize Processing</span> Business with our all-in-one management system
                 </motion.h1>
-                <motion.p
-                    className="text-lg md:text-xl mb-8 leading-relaxed"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ delay: 0.2, duration: 0.8 }}
-                >
-                MaizeTrackAI is the most comprehensive business management system designed specifically for maize processing companies. From procurement to production to sales
-                </motion.p>
+                
                 <div className="flex flex-wrap gap-4">
                     <Link to="/login">
                     <motion.button
@@ -51,7 +44,7 @@ export const HeroSection = () => {
                     <motion.button
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
-                        className="bg-transparent border-2 border-white text-white px-6 py-3 rounded-lg font-medium hover:bg-white/10 transition-all"
+                        className="bg-transparent border-2 border-white text-white px-4 py-3 rounded-lg font-medium hover:bg-white/10 transition-all"
                     >
                         Learn More
                     </motion.button>

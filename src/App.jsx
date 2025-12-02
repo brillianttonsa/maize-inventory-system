@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Route, Routes} from "react-router-dom"
+import { BrowserRouter as Router, Route, Routes } from "react-router-dom"
 import ScrollToTop from "./components/ScrollToTop"
 
 // pages
@@ -9,9 +9,9 @@ import Signup from "./pages/Signup"
 import Login from "./pages/Login"
 import NotFound from "./pages/NotFound"
 import ResetPassword from "./pages/ResetPassword"
+import ForgotPassword from "./pages/ForgotPassword"
 import TermsPage from "./pages/legal/TermsPage"
 import PrivacyPolicyPage from "./pages/legal/PrivacypolicyPage"
-
 
 import Dashboard from "./dashboardpages/Dashboard"
 import Layout from "./components/dashboardcomponents/Sidebar"
@@ -22,6 +22,7 @@ import Sales from "./dashboardpages/Sales"
 import Reports from "./dashboardpages/Reports"
 import Expenses from "./dashboardpages/Expenses"
 import Analytics from "./dashboardpages/Analytics"
+import AIAnalytics from "./dashboardpages/AIAnalytics"
 import Settings from "./dashboardpages/Settings"
 
 // protecting routes
@@ -29,101 +30,135 @@ import { AuthProvider } from "./context/AuthContext"
 import ProtectedRoute from "./context/ProtectedRoute"
 
 export default function App() {
-
   return (
-      <AuthProvider>
-        <Router>
-        <ScrollToTop/>
+    <AuthProvider>
+      <Router>
+        <ScrollToTop />
 
-          <Routes>
-            
-
-            <Route path="/" element={<Home/>}/>
-            <Route path="/about" element={<About/>}/>
-            <Route path="/contact" element={<Contact/>}/>
-            <Route path="/signup" element={<Signup/>}/>
-            <Route path="/login" element={<Login/>}/>
-            <Route path="/forgot-password" element={<ForgotPassword />} />
-            
-            <Route path="/terms-of-service" element={<TermsPage/>}/>
-            <Route path="private-policy" element={<PrivacyPolicyPage/>}/>
-            <Route path="/dashboard" element={
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/about" element={<About />} />
+          <Route path="/contact" element={<Contact />} />
+          <Route path="/signup" element={<Signup />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/forgot-password" element={<ForgotPassword />} />
+          <Route path="/reset-password/:token" element={<ResetPassword />} />
+          <Route path="/terms-of-service" element={<TermsPage />} />
+          <Route path="private-policy" element={<PrivacyPolicyPage />} />
+          
+          <Route
+            path="/dashboard"
+            element={
               <ProtectedRoute>
                 <Layout>
-                <Dashboard />
-              </Layout>
+                  <Dashboard />
+                </Layout>
               </ProtectedRoute>
-            } />
+            }
+          />
 
-            <Route path="/inventory" element={
+          <Route
+            path="/inventory"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Inventory />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Inventory />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            
-
-            <Route path="/procurement" element={
+          <Route
+            path="/procurement"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Procurement />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Procurement />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/production" element={
+          <Route
+            path="/production"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Production />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Production />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/sales" element={
+          <Route
+            path="/sales"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Sales />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Sales />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/analytics" element={
+          <Route
+            path="/analytics"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Analytics />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Analytics />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/expenses" element={
+          <Route
+            path="/expenses"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Expenses />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Expenses />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/reports" element={
+          <Route
+            path="/ai-analytics"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Reports />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <AIAnalytics />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="/settings" element={
+          <Route
+            path="/reports"
+            element={
               <ProtectedRoute>
-              <Layout>
-              <Settings />
-            </Layout>
-            </ProtectedRoute>
-            } />
+                <Layout>
+                  <Reports />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
-            <Route path="*" element={<NotFound />} />
-          </Routes>  
-        </Router>
-      </AuthProvider>
+          <Route
+            path="/settings"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <Settings />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route path="*" element={<NotFound />} />
+        </Routes>
+      </Router>
+    </AuthProvider>
   )
 }

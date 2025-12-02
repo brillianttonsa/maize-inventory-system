@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { WhatMaizefeatures } from "./Features";
+import { WhatMaizefeatures } from "./components/Features";
 import { fadeIn } from "../animations/Animations";
 
 export default function WhatIsMaizeTrack() {
@@ -15,10 +15,10 @@ export default function WhatIsMaizeTrack() {
           variants={fadeIn}
         >
           <h2 className="text-3xl md:text-4xl font-bold mb-6 text-yellow-900">
-            What is MaizeTrack?
+            What is MaizeTrack AI?
           </h2>
           <p className="text-lg text-yellow-800 mb-8 leading-relaxed">
-            MaizeTrack is an enterprise-grade business management system specifically designed for maize processing
+            MaizeTrack AI is an enterprise-grade business management system specifically designed for maize processing
             companies. Whether you're a small family business or a large industrial operation, MaizeTrack provides the
             tools you need to streamline operations, reduce costs, and increase profitability.
           </p>

@@ -10,7 +10,7 @@ export const Header = () => {
               transition={{ duration: 0.5 }}
               className="text-center text-white"
             >
-              <h1 className="text-4xl md:text-5xl font-bold mb-4">About MaizeTrackAI</h1>
+              <h1 className="text-4xl md:text-5xl font-bold mb-4">About MaizeTrack AI</h1>
               <p className="text-xl max-w-3xl mx-auto">
                 The complete solution for maize flour production tracking and management
               </p>

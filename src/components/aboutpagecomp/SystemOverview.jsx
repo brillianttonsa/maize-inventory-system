@@ -8,7 +8,7 @@ export const SystemOverview = ()=> {
             <motion.div initial={{ opacity: 0 }} whileInView={{ opacity: 1 }} viewport={{ once: true }} className="mb-12">
               <h2 className="text-3xl font-bold mb-6 text-gray-800">The System</h2>
               <p className="text-lg text-gray-600 mb-6">
-                MaizeTrackAI is a system designed to revolutionize how maize flour production is managed and tracked.
+                MaizeTrack AI is a system designed to revolutionize how maize flour production is managed and tracked.
                 It was created in response to common challenges faced in the industry, such as tracking inventory accurately,
                 and optimizing production processes.
               </p>
@@ -41,7 +41,7 @@ export const SystemOverview = ()=> {
               viewport={{ once: true }}
               transition={{ delay: 0.3 }}
             >
-              <h2 className="text-xl sm:text-3xl font-bold mb-6 text-gray-800">Why Choose MaizeTrackAI System?</h2>
+              <h2 className="text-xl sm:text-3xl font-bold mb-6 text-gray-800">Why Choose MaizeTrack AI System?</h2>
               <div className="grid md:grid-cols-2 gap-6">
                 {FeaturesAbout.map((item, index) => (
                   <motion.div

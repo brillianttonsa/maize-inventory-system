@@ -12,7 +12,7 @@ export const BenefitsHeader = () => {
         Measurable Business Benefits
       </h2>
       <p className="text-lg text-yellow-900 max-w-3xl mx-auto">
-        MaizeTrack delivers tangible results that directly impact your bottom line. Here's what our customers
+        MaizeTrack AI delivers tangible results that directly impact your bottom line. Here's what our customers
         typically achieve.
       </p>
     </motion.div>

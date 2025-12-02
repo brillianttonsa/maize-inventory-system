@@ -12,7 +12,7 @@ export const Header = () => {
             >
               <h1 className="text-4xl md:text-5xl font-bold mb-4">Contact Us</h1>
               <p className="text-xl max-w-3xl mx-auto">
-                Have questions about MaizeTrackAI? Am here to help.Reach me out.
+                Have questions about MaizeTrack AI? Am here to help. Reach me out.
               </p>
             </motion.div>
           </div>
