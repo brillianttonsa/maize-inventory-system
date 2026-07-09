@@ -26,7 +26,7 @@ export const billingCycleEnum = pgEnum('billing_cycle', [
 ]);
 
 export const paymentMethodEnum = pgEnum('payment_method', [
-  'cash', 'bank_transfer', 'mobile_money', 'card'
+  'bank_transfer', 'mobile_money', 'card'
 ]);
 
 // ==========================================
@@ -153,8 +153,7 @@ export const subscriptions = pgTable('subscriptions', {
   id: uuid('id').defaultRandom().primaryKey(),
   user_id: uuid('user_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' })
-    .unique(),
+    .references(() => users.id, { onDelete: 'cascade' }),
   plan_id: uuid('plan_id')
     .references(() => subscriptionPlans.id),
   status: subscriptionStatusEnum('status').default('trialing').notNull(),
@@ -170,7 +169,7 @@ export const subscriptionPayments = pgTable('subscription_payments', {
   id: uuid('id').defaultRandom().primaryKey(),
   user_id: uuid('user_id')
     .notNull()
-    .references(() => users.id, { onDelete: 'cascade' }),
+    .references(() => users.id, { onDelete: 'restrict' }),
   subscription_id: uuid('subscription_id')
     .references(() => subscriptions.id, { onDelete: 'set null' }),
   amount: numeric('amount', { precision: 12, scale: 2 }).notNull(),

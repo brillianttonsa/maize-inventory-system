@@ -8,6 +8,13 @@
       "when": 1783503315549,
       "tag": "0000_sour_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1783575601492,
+      "tag": "0001_lyrical_the_hood",
+      "breakpoints": true
     }
   ]
 }
