@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
+import {
+  type AuthenticatedRequest,
+  JwtAuthGuard,
+} from '../auth/guards/jwt-auth.guard';
 
 @Controller('sales')
+@UseGuards(JwtAuthGuard)
 export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
-  @Post()
-  create(@Body() createSaleDto: CreateSaleDto) {
-    return this.salesService.create(createSaleDto);
-  }
-
   @Get()
-  findAll() {
-    return this.salesService.findAll();
+  findAll(@Req() req: AuthenticatedRequest) {
+    return this.salesService.findAll(req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.salesService.findOne(+id);
+  @Post()
+  create(@Body() dto: CreateSaleDto, @Req() req: AuthenticatedRequest) {
+    return this.salesService.create(req.user.id, dto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateSaleDto: UpdateSaleDto) {
-    return this.salesService.update(+id, updateSaleDto);
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateSaleDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.salesService.update(req.user.id, id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.salesService.remove(+id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.salesService.remove(req.user.id, id);
   }
 }

@@ -1,26 +1,94 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { and, asc, eq } from 'drizzle-orm';
+import { DB_PROVIDER, type DbClient } from '../../db/db.module';
+import { sales } from '../../db/schema';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 
 @Injectable()
 export class SalesService {
-  create(createSaleDto: CreateSaleDto) {
-    return 'This action adds a new sale';
+  constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
+
+  findAll(userId: string) {
+    // old app ordered by numeric id; ids are uuids now so we order by created_at instead
+    return this.db.query.sales.findMany({
+      where: eq(sales.user_id, userId),
+      orderBy: asc(sales.created_at),
+    });
   }
 
-  findAll() {
-    return `This action returns all sales`;
+  async create(userId: string, dto: CreateSaleDto) {
+    const [newSale] = await this.db
+      .insert(sales)
+      .values({
+        user_id: userId,
+        customer_name: dto.customer_name,
+        customer_contact: dto.customer_contact,
+        product_type: dto.product_type,
+        quantity: String(dto.quantity),
+        price_per_kg: String(dto.price_per_kg),
+        delivery_cost: String(dto.delivery_cost),
+        delivery_address: dto.delivery_address,
+        payment_method: dto.payment_method,
+        total_amount: String(dto.total_amount),
+        notes: dto.notes,
+        date: dto.date,
+      })
+      .returning();
+    return newSale;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} sale`;
+  async update(userId: string, id: string, dto: UpdateSaleDto) {
+    const [updatedSale] = await this.db
+      .update(sales)
+      .set({
+        ...(dto.customer_name !== undefined && {
+          customer_name: dto.customer_name,
+        }),
+        ...(dto.customer_contact !== undefined && {
+          customer_contact: dto.customer_contact,
+        }),
+        ...(dto.product_type !== undefined && {
+          product_type: dto.product_type,
+        }),
+        ...(dto.quantity !== undefined && { quantity: String(dto.quantity) }),
+        ...(dto.price_per_kg !== undefined && {
+          price_per_kg: String(dto.price_per_kg),
+        }),
+        ...(dto.delivery_cost !== undefined && {
+          delivery_cost: String(dto.delivery_cost),
+        }),
+        ...(dto.delivery_address !== undefined && {
+          delivery_address: dto.delivery_address,
+        }),
+        ...(dto.payment_method !== undefined && {
+          payment_method: dto.payment_method,
+        }),
+        ...(dto.total_amount !== undefined && {
+          total_amount: String(dto.total_amount),
+        }),
+        ...(dto.notes !== undefined && { notes: dto.notes }),
+        ...(dto.date !== undefined && { date: dto.date }),
+        updated_at: new Date(),
+      })
+      .where(and(eq(sales.id, id), eq(sales.user_id, userId)))
+      .returning();
+
+    if (!updatedSale) {
+      throw new NotFoundException('Sale not found or unauthorized');
+    }
+    return updatedSale;
   }
 
-  update(id: number, updateSaleDto: UpdateSaleDto) {
-    return `This action updates a #${id} sale`;
-  }
+  async remove(userId: string, id: string) {
+    const [deleted] = await this.db
+      .delete(sales)
+      .where(and(eq(sales.id, id), eq(sales.user_id, userId)))
+      .returning({ id: sales.id });
 
-  remove(id: number) {
-    return `This action removes a #${id} sale`;
+    if (!deleted) {
+      throw new NotFoundException('Sale not found or unauthorized');
+    }
+    return { message: 'Sale deleted successfully' };
   }
 }
