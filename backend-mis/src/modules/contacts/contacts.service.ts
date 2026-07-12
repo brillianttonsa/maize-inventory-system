@@ -1,5 +1,5 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { DB_PROVIDER, DbClient } from '../../db/db.module';
+import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { contacts } from '../../db/schema';
 import { CreateContactDto } from './dto/create-contact.dto';
 
