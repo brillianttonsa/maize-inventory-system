@@ -193,3 +193,15 @@ export type Contact = typeof contacts.$inferSelect;
 export type SubscriptionPlan = typeof subscriptionPlans.$inferSelect;
 export type Subscription = typeof subscriptions.$inferSelect;
 export type SubscriptionPayment = typeof subscriptionPayments.$inferSelect;
+
+// INSERT TYPES (data going INTO database)
+export type NewUser = typeof users.$inferInsert;
+export type NewProductionBatch = typeof productionBatches.$inferInsert;
+export type NewProcurementOrder = typeof procurementOrders.$inferInsert;
+export type NewSale = typeof sales.$inferInsert;
+export type NewExpense = typeof expenses.$inferInsert;
+export type NewPasswordResetToken = typeof passwordResetTokens.$inferInsert;
+export type NewContact = typeof contacts.$inferInsert;
+export type NewSubscriptionPlan = typeof subscriptionPlans.$inferInsert;
+export type NewSubscription = typeof subscriptions.$inferInsert;
+export type NewSubscriptionPayment = typeof subscriptionPayments.$inferInsert;
