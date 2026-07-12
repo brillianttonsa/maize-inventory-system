@@ -1,34 +1,48 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { ProcurementService } from './procurement.service';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
 import { UpdateProcurementDto } from './dto/update-procurement.dto';
+import {
+  type AuthenticatedRequest,
+  JwtAuthGuard,
+} from '../auth/guards/jwt-auth.guard';
 
 @Controller('procurement')
+@UseGuards(JwtAuthGuard)
 export class ProcurementController {
   constructor(private readonly procurementService: ProcurementService) {}
 
-  @Post()
-  create(@Body() createProcurementDto: CreateProcurementDto) {
-    return this.procurementService.create(createProcurementDto);
-  }
-
   @Get()
-  findAll() {
-    return this.procurementService.findAll();
+  findAll(@Req() req: AuthenticatedRequest) {
+    return this.procurementService.findAll(req.user.id);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.procurementService.findOne(+id);
+  @Post()
+  create(@Body() dto: CreateProcurementDto, @Req() req: AuthenticatedRequest) {
+    return this.procurementService.create(req.user.id, dto);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateProcurementDto: UpdateProcurementDto) {
-    return this.procurementService.update(+id, updateProcurementDto);
+  @Put(':id')
+  update(
+    @Param('id') id: string,
+    @Body() dto: UpdateProcurementDto,
+    @Req() req: AuthenticatedRequest,
+  ) {
+    return this.procurementService.update(req.user.id, id, dto);
   }
 
   @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.procurementService.remove(+id);
+  remove(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
+    return this.procurementService.remove(req.user.id, id);
   }
 }
