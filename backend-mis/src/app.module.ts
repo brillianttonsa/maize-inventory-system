@@ -13,6 +13,7 @@ import { ContactsModule } from './modules/contacts/contacts.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ReportsModule } from './modules/reports/reports.module';
+import { AiAnalyticsModule } from './modules/ai-analytics/ai-analytics.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ReportsModule } from './modules/reports/reports.module';
     SettingsModule,
     InventoryModule,
     ReportsModule,
+    AiAnalyticsModule
   ],
   controllers: [AppController],
   providers: [AppService],
