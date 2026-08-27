@@ -5,6 +5,13 @@ import { sales } from '../../db/schema';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 
+const BRAN_DEBE_MULTIPLIERS: Record<string, number> = {
+  half_debe: 0.5,
+  debe: 1,
+  kisado: 0.25,
+  gunia: 7,
+};
+
 @Injectable()
 export class SalesService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
@@ -18,10 +25,16 @@ export class SalesService {
   }
 
   async create(userId: string, dto: CreateSaleDto) {
-    if (dto.sack_count === undefined || dto.sack_size === undefined) {
-      throw new BadRequestException('Sack count and sack size are required for a sale');
+    const isBran = dto.product_type.toLowerCase() === 'bran';
+    if (isBran && (dto.bran_unit_count === undefined || dto.bran_unit === undefined)) {
+      throw new BadRequestException('Bran unit and quantity are required for a bran sale');
     }
-    const quantityInKg = dto.sack_count * dto.sack_size;
+    if (!isBran && (dto.sack_count === undefined || dto.sack_size === undefined)) {
+      throw new BadRequestException('Sack count and sack size are required for a flour sale');
+    }
+    const quantity = isBran
+      ? dto.bran_unit_count! * BRAN_DEBE_MULTIPLIERS[dto.bran_unit!]
+      : dto.sack_count! * dto.sack_size!;
     const [newSale] = await this.db
       .insert(sales)
       .values({
@@ -29,9 +42,12 @@ export class SalesService {
         customer_name: dto.customer_name,
         customer_contact: dto.customer_contact,
         product_type: dto.product_type,
-        quantity: String(quantityInKg),
-        sack_count: dto.sack_count,
-        sack_size: dto.sack_size,
+        quantity: String(quantity),
+        sack_count: isBran ? undefined : dto.sack_count,
+        sack_size: isBran ? undefined : dto.sack_size,
+        bran_debe_quantity: isBran ? String(quantity) : undefined,
+        bran_unit_count: isBran ? String(dto.bran_unit_count) : undefined,
+        bran_unit: isBran ? dto.bran_unit : undefined,
         price_per_kg: String(dto.price_per_kg),
         delivery_cost: String(dto.delivery_cost),
         delivery_address: dto.delivery_address,
@@ -60,6 +76,8 @@ export class SalesService {
         ...(dto.quantity !== undefined && { quantity: String(dto.quantity) }),
         ...(dto.sack_count !== undefined && { sack_count: dto.sack_count }),
         ...(dto.sack_size !== undefined && { sack_size: dto.sack_size }),
+        ...(dto.bran_unit_count !== undefined && { bran_unit_count: String(dto.bran_unit_count) }),
+        ...(dto.bran_unit !== undefined && { bran_unit: dto.bran_unit }),
         ...(dto.price_per_kg !== undefined && {
           price_per_kg: String(dto.price_per_kg),
         }),

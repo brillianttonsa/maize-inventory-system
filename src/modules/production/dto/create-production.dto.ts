@@ -1,4 +1,4 @@
-import { IsDateString, IsIn, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductionDto {
   @IsInt()
@@ -7,8 +7,15 @@ export class CreateProductionDto {
   @IsInt()
   flour_output!: number;
 
+  @IsOptional()
   @IsInt()
-  bran_output!: number;
+  bran_output?: number;
+
+  @IsNumber()
+  bran_unit_count!: number;
+
+  @IsIn(['half_debe', 'debe', 'kisado', 'gunia'])
+  bran_unit!: string;
 
   @IsInt()
   water_usage!: number;

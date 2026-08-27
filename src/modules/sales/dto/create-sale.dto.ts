@@ -16,11 +16,21 @@ export class CreateSaleDto {
   @IsNumber()
   quantity!: number;
 
+  @IsOptional()
   @IsInt()
-  sack_count!: number;
+  sack_count?: number;
 
+  @IsOptional()
   @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
-  sack_size!: number;
+  sack_size?: number;
+
+  @IsOptional()
+  @IsNumber()
+  bran_unit_count?: number;
+
+  @IsOptional()
+  @IsIn(['half_debe', 'debe', 'kisado', 'gunia'])
+  bran_unit?: string;
 
   @IsNumber()
   price_per_kg!: number;

@@ -5,6 +5,13 @@ import { productionBatches } from '../../db/schema';
 import { CreateProductionDto } from './dto/create-production.dto';
 import { UpdateProductionDto } from './dto/update-production.dto';
 
+const BRAN_DEBE_MULTIPLIERS: Record<string, number> = {
+  half_debe: 0.5,
+  debe: 1,
+  kisado: 0.25,
+  gunia: 7,
+};
+
 @Injectable()
 export class ProductionService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
@@ -21,13 +28,17 @@ export class ProductionService {
     if (dto.sack_size === undefined) {
       throw new BadRequestException('Sack size is required when recording sacks used');
     }
+    const branDebeQuantity = dto.bran_unit_count * BRAN_DEBE_MULTIPLIERS[dto.bran_unit];
     const [newBatch] = await this.db
       .insert(productionBatches)
       .values({
         user_id: userId,
         maize_quantity: dto.maize_quantity,
         flour_output: dto.flour_output,
-        bran_output: dto.bran_output,
+        // Preserve the old kg column for historical compatibility; new bran is tracked in debe.
+        bran_output: dto.bran_output ?? 0,
+        bran_debe_quantity: String(branDebeQuantity),
+        bran_unit: dto.bran_unit,
         water_usage: dto.water_usage,
         electricity_usage: dto.electricity_usage,
         sacks_used: dto.sacks_used,
@@ -50,6 +61,10 @@ export class ProductionService {
           flour_output: dto.flour_output,
         }),
         ...(dto.bran_output !== undefined && { bran_output: dto.bran_output }),
+        ...(dto.bran_unit_count !== undefined && dto.bran_unit !== undefined && {
+          bran_debe_quantity: String(dto.bran_unit_count * BRAN_DEBE_MULTIPLIERS[dto.bran_unit]),
+          bran_unit: dto.bran_unit,
+        }),
         ...(dto.water_usage !== undefined && {
           water_usage: dto.water_usage,
         }),

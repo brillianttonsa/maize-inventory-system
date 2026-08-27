@@ -89,13 +89,16 @@ export class InventoryService {
         source: 'Production',
         remarks: `Produced ${p.flour_output} kg of Flour`,
       });
+      const branQuantity = p.bran_debe_quantity !== null ? Number(p.bran_debe_quantity) : Number(p.bran_output);
       movements.push({
         date: localDate,
-        item: 'Bran',
-        quantityIn: Number(p.bran_output),
+        item: p.bran_debe_quantity !== null ? 'Bran (debe)' : 'Bran (legacy kg)',
+        quantityIn: branQuantity,
         quantityOut: 0,
         source: 'Production',
-        remarks: `Produced ${p.bran_output} kg of Bran`,
+        remarks: p.bran_debe_quantity !== null
+          ? `Produced ${p.bran_debe_quantity} debe of Bran (${p.bran_unit})`
+          : `Produced ${p.bran_output} kg of Bran (legacy)`,
       });
       movements.push({
         date: localDate,
@@ -109,14 +112,18 @@ export class InventoryService {
 
     // Sales
     sal.forEach((s) => {
+      const isBran = s.product_type.toLowerCase() === 'bran';
+      const quantity = isBran && s.bran_debe_quantity !== null ? Number(s.bran_debe_quantity) : Number(s.quantity || 0);
       movements.push({
         date: toLocalDateString(s.date),
-        item: s.product_type.charAt(0).toUpperCase() + s.product_type.slice(1),
+        item: isBran ? (s.bran_debe_quantity !== null ? 'Bran (debe)' : 'Bran (legacy kg)') : 'Flour',
         quantityIn: 0,
-        quantityOut: Number(s.quantity || 0),
+        quantityOut: quantity,
         source: 'Sales',
         // old app referenced a non-existent `s.customer` field here; fixed to customer_name
-        remarks: `Sold ${s.quantity || 0} kg to ${s.customer_name || 'Customer'}`,
+        remarks: isBran && s.bran_debe_quantity !== null
+          ? `Sold ${s.bran_unit_count} ${s.bran_unit} (${s.bran_debe_quantity} debe) to ${s.customer_name || 'Customer'}`
+          : `Sold ${s.quantity || 0} kg to ${s.customer_name || 'Customer'}`,
       });
     });
 
