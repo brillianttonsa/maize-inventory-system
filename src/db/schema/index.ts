@@ -53,6 +53,8 @@ export const productionBatches = pgTable('production_batches', {
   water_usage: integer('water_usage').notNull(),
   electricity_usage: integer('electricity_usage').notNull(),
   sacks_used: integer('sacks_used').notNull(),
+  // Null is retained for production records created before sized sack tracking.
+  sack_size: integer('sack_size'),
   notes: text('notes'),
   date: date('date').notNull(),
   created_at: timestamp('created_at').defaultNow(),
@@ -83,6 +85,8 @@ export const sales = pgTable('sales', {
   customer_contact: varchar('customer_contact', { length: 50 }).notNull(),
   product_type: varchar('product_type', { length: 20 }).notNull(),
   quantity: numeric('quantity', { precision: 10, scale: 2 }).notNull(),
+  sack_count: integer('sack_count'),
+  sack_size: integer('sack_size'),
   price_per_kg: numeric('price_per_kg', { precision: 10, scale: 2 }).notNull(),
   delivery_cost: numeric('delivery_cost', { precision: 10, scale: 2 }).notNull(),
   delivery_address: varchar('delivery_address', { length: 255 }).notNull(),
@@ -102,6 +106,8 @@ export const expenses = pgTable('expenses', {
   date: date('date').notNull(),
   category: text('category').notNull(),
   unit_value: numeric('unit_value'),
+  // The capacity of a sack purchase: 5 kg, 10 kg, or 25 kg.
+  sack_size: integer('sack_size'),
   amount: bigint('amount', { mode: 'number' }).notNull(),
   paid_by: text('paid_by'),
   method: text('method'),

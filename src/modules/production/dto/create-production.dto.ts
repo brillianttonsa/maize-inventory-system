@@ -1,4 +1,4 @@
-import { IsDateString, IsInt, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsOptional, IsString } from 'class-validator';
 
 export class CreateProductionDto {
   @IsInt()
@@ -18,6 +18,9 @@ export class CreateProductionDto {
 
   @IsInt()
   sacks_used!: number;
+
+  @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
+  sack_size!: number;
 
   @IsOptional()
   @IsString()

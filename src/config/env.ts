@@ -16,5 +16,5 @@ export const env = {
   JWT_ACCESS_SECRET: required('JWT_ACCESS_SECRET'),
   JWT_ACCESS_EXPIRES_IN: required('JWT_ACCESS_EXPIRES_IN'),
   NODE_ENV: process.env.NODE_ENV || 'development',
-  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:3000',
+  CLIENT_URL: process.env.CLIENT_URL || 'http://localhost:5174',
 };

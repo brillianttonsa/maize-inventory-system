@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { sales } from '../../db/schema';
@@ -18,6 +18,10 @@ export class SalesService {
   }
 
   async create(userId: string, dto: CreateSaleDto) {
+    if (dto.sack_count === undefined || dto.sack_size === undefined) {
+      throw new BadRequestException('Sack count and sack size are required for a sale');
+    }
+    const quantityInKg = dto.sack_count * dto.sack_size;
     const [newSale] = await this.db
       .insert(sales)
       .values({
@@ -25,7 +29,9 @@ export class SalesService {
         customer_name: dto.customer_name,
         customer_contact: dto.customer_contact,
         product_type: dto.product_type,
-        quantity: String(dto.quantity),
+        quantity: String(quantityInKg),
+        sack_count: dto.sack_count,
+        sack_size: dto.sack_size,
         price_per_kg: String(dto.price_per_kg),
         delivery_cost: String(dto.delivery_cost),
         delivery_address: dto.delivery_address,
@@ -52,6 +58,8 @@ export class SalesService {
           product_type: dto.product_type,
         }),
         ...(dto.quantity !== undefined && { quantity: String(dto.quantity) }),
+        ...(dto.sack_count !== undefined && { sack_count: dto.sack_count }),
+        ...(dto.sack_size !== undefined && { sack_size: dto.sack_size }),
         ...(dto.price_per_kg !== undefined && {
           price_per_kg: String(dto.price_per_kg),
         }),

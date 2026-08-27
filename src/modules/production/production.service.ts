@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { productionBatches } from '../../db/schema';
@@ -18,6 +18,9 @@ export class ProductionService {
   }
 
   async create(userId: string, dto: CreateProductionDto) {
+    if (dto.sack_size === undefined) {
+      throw new BadRequestException('Sack size is required when recording sacks used');
+    }
     const [newBatch] = await this.db
       .insert(productionBatches)
       .values({
@@ -28,6 +31,7 @@ export class ProductionService {
         water_usage: dto.water_usage,
         electricity_usage: dto.electricity_usage,
         sacks_used: dto.sacks_used,
+        sack_size: dto.sack_size,
         notes: dto.notes,
         date: dto.date,
       })
@@ -53,6 +57,7 @@ export class ProductionService {
           electricity_usage: dto.electricity_usage,
         }),
         ...(dto.sacks_used !== undefined && { sacks_used: dto.sacks_used }),
+        ...(dto.sack_size !== undefined && { sack_size: dto.sack_size }),
         ...(dto.notes !== undefined && { notes: dto.notes }),
         ...(dto.date !== undefined && { date: dto.date }),
       })

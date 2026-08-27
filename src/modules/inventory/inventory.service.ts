@@ -18,6 +18,10 @@ export interface InventoryMovement {
   balance?: number;
 }
 
+function sackItem(sackSize: number | null): string {
+  return sackSize ? `${sackSize} kg Sacks` : 'Unspecified Sacks';
+}
+
 function toLocalDateString(date: string | Date): string {
   return new Date(date).toLocaleDateString('en-CA'); // YYYY-MM-DD
 }
@@ -58,11 +62,11 @@ export class InventoryService {
       .forEach((e) =>
         movements.push({
           date: toLocalDateString(e.date),
-          item: 'Sacks',
+          item: sackItem(e.sack_size),
           quantityIn: Number(e.unit_value || 0),
           quantityOut: 0,
           source: 'Expense',
-          remarks: `Purchased ${e.amount || 0} sacks`,
+          remarks: `Purchased ${e.unit_value || 0} ${e.sack_size ?? 'unspecified'} kg sacks`,
         }),
       );
 
@@ -95,11 +99,11 @@ export class InventoryService {
       });
       movements.push({
         date: localDate,
-        item: 'Sacks',
+        item: sackItem(p.sack_size),
         quantityIn: 0,
         quantityOut: Number(p.sacks_used || 0),
         source: 'Production',
-        remarks: `Used ${p.sacks_used} units of sacks`,
+        remarks: `Used ${p.sacks_used} ${p.sack_size ?? 'unspecified'} kg sacks`,
       });
     });
 

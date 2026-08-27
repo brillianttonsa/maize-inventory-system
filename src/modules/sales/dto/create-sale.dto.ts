@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateSaleDto {
   @IsNotEmpty({ message: 'Customer name is required' })
@@ -15,6 +15,12 @@ export class CreateSaleDto {
 
   @IsNumber()
   quantity!: number;
+
+  @IsInt()
+  sack_count!: number;
+
+  @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
+  sack_size!: number;
 
   @IsNumber()
   price_per_kg!: number;

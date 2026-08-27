@@ -1,4 +1,4 @@
-import { Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, eq } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { expenses } from '../../db/schema';
@@ -27,6 +27,9 @@ export class ExpensesService {
   }
 
   async create(userId: string, dto: CreateExpenseDto) {
+    if (dto.category.toLowerCase() === 'sacks' && dto.sack_size === undefined) {
+      throw new BadRequestException('Sack size is required when recording a sack purchase');
+    }
     const [newExpense] = await this.db
       .insert(expenses)
       .values({
@@ -36,6 +39,7 @@ export class ExpensesService {
         amount: dto.amount,
         unit_value:
           dto.unit_value !== undefined ? String(dto.unit_value) : undefined,
+        sack_size: dto.sack_size,
         paid_by: dto.paid_by,
         method: dto.method,
         notes: dto.notes,
@@ -54,6 +58,7 @@ export class ExpensesService {
         ...(dto.unit_value !== undefined && {
           unit_value: String(dto.unit_value),
         }),
+        ...(dto.sack_size !== undefined && { sack_size: dto.sack_size }),
         ...(dto.paid_by !== undefined && { paid_by: dto.paid_by }),
         ...(dto.method !== undefined && { method: dto.method }),
         ...(dto.notes !== undefined && { notes: dto.notes }),

@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
 
 export class CreateExpenseDto {
   @IsDateString()
@@ -14,6 +14,10 @@ export class CreateExpenseDto {
   @IsOptional()
   @IsNumber()
   unit_value?: number;
+
+  @IsOptional()
+  @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
+  sack_size?: number;
 
   @IsOptional()
   @IsString()
