@@ -57,7 +57,6 @@ export const productionBatches = pgTable('production_batches', {
   sacks_used: integer('sacks_used').notNull(),
   // Null is retained for production records created before sized sack tracking.
   sack_size: integer('sack_size'),
-  bran_unit_count: numeric('bran_unit_count', { precision: 12, scale: 2 }),
   notes: text('notes'),
   date: date('date').notNull(),
   created_at: timestamp('created_at').defaultNow(),
