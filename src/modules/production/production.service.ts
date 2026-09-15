@@ -5,12 +5,8 @@ import { productionBatches } from '../../db/schema';
 import { CreateProductionDto } from './dto/create-production.dto';
 import { UpdateProductionDto } from './dto/update-production.dto';
 
-const BRAN_DEBE_MULTIPLIERS: Record<string, number> = {
-  half_debe: 0.5,
-  debe: 1,
-  kisado: 0.25,
-  gunia: 7,
-};
+const KG_PER_TON = 1000;
+const DEBE_PER_GUNIA = 7;
 
 @Injectable()
 export class ProductionService {
@@ -25,25 +21,30 @@ export class ProductionService {
   }
 
   async create(userId: string, dto: CreateProductionDto) {
-    if (dto.sack_size === undefined) {
-      throw new BadRequestException('Sack size is required when recording sacks used');
+    const flour5 = dto.flour_sacks_5kg ?? 0;
+    const flour10 = dto.flour_sacks_10kg ?? 0;
+    const flour25 = dto.flour_sacks_25kg ?? 0;
+    const flourOutput = flour5 * 5 + flour10 * 10 + flour25 * 25;
+    if (flourOutput <= 0) {
+      throw new BadRequestException('Record at least one flour sack in 5 kg, 10 kg, or 25 kg packaging');
     }
-    const branDebeQuantity = dto.bran_unit_count * BRAN_DEBE_MULTIPLIERS[dto.bran_unit];
+    const branGunia = dto.bran_unit_count ?? 0;
     const [newBatch] = await this.db
       .insert(productionBatches)
       .values({
         user_id: userId,
-        maize_quantity: dto.maize_quantity,
-        flour_output: dto.flour_output,
-        // Preserve the old kg column for historical compatibility; new bran is tracked in debe.
-        bran_output: dto.bran_output ?? 0,
-        bran_debe_quantity: String(branDebeQuantity),
-        bran_unit: dto.bran_unit,
-        water_usage: dto.water_usage,
-        electricity_usage: dto.electricity_usage,
-        sacks_used: dto.sacks_used,
-        sack_size: dto.sack_size,
-        notes: dto.notes,
+        maize_quantity: Math.round(dto.maize_tons * KG_PER_TON),
+        flour_output: flourOutput,
+        flour_sacks_5kg: flour5,
+        flour_sacks_10kg: flour10,
+        flour_sacks_25kg: flour25,
+        bran_output: 0,
+        bran_debe_quantity: String(branGunia * DEBE_PER_GUNIA),
+        bran_unit: 'gunia',
+        // Retained database columns for historical records; no longer part of production entry.
+        water_usage: 0,
+        electricity_usage: 0,
+        sacks_used: 0,
         date: dto.date,
       })
       .returning();
@@ -54,26 +55,19 @@ export class ProductionService {
     const [updatedBatch] = await this.db
       .update(productionBatches)
       .set({
-        ...(dto.maize_quantity !== undefined && {
-          maize_quantity: dto.maize_quantity,
+        ...(dto.maize_tons !== undefined && {
+          maize_quantity: Math.round(dto.maize_tons * KG_PER_TON),
         }),
-        ...(dto.flour_output !== undefined && {
-          flour_output: dto.flour_output,
+        ...((dto.flour_sacks_5kg !== undefined || dto.flour_sacks_10kg !== undefined || dto.flour_sacks_25kg !== undefined) && {
+          flour_sacks_5kg: dto.flour_sacks_5kg ?? 0,
+          flour_sacks_10kg: dto.flour_sacks_10kg ?? 0,
+          flour_sacks_25kg: dto.flour_sacks_25kg ?? 0,
+          flour_output: (dto.flour_sacks_5kg ?? 0) * 5 + (dto.flour_sacks_10kg ?? 0) * 10 + (dto.flour_sacks_25kg ?? 0) * 25,
         }),
-        ...(dto.bran_output !== undefined && { bran_output: dto.bran_output }),
-        ...(dto.bran_unit_count !== undefined && dto.bran_unit !== undefined && {
-          bran_debe_quantity: String(dto.bran_unit_count * BRAN_DEBE_MULTIPLIERS[dto.bran_unit]),
-          bran_unit: dto.bran_unit,
+        ...(dto.bran_unit_count !== undefined && {
+          bran_debe_quantity: String(dto.bran_unit_count * DEBE_PER_GUNIA),
+          bran_unit: 'gunia',
         }),
-        ...(dto.water_usage !== undefined && {
-          water_usage: dto.water_usage,
-        }),
-        ...(dto.electricity_usage !== undefined && {
-          electricity_usage: dto.electricity_usage,
-        }),
-        ...(dto.sacks_used !== undefined && { sacks_used: dto.sacks_used }),
-        ...(dto.sack_size !== undefined && { sack_size: dto.sack_size }),
-        ...(dto.notes !== undefined && { notes: dto.notes }),
         ...(dto.date !== undefined && { date: dto.date }),
       })
       .where(

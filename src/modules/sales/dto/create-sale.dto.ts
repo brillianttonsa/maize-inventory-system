@@ -29,8 +29,8 @@ export class CreateSaleDto {
   bran_unit_count?: number;
 
   @IsOptional()
-  @IsIn(['half_debe', 'debe', 'kisado', 'gunia'])
-  bran_unit?: string;
+  @IsIn(['gunia'])
+  bran_unit?: 'gunia';
 
   @IsNumber()
   price_per_kg!: number;
@@ -49,9 +49,6 @@ export class CreateSaleDto {
   @IsNumber()
   total_amount!: number;
 
-  @IsOptional()
-  @IsString()
-  notes?: string;
 
   @IsDateString()
   date!: string;

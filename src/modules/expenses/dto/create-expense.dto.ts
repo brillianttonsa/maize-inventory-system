@@ -16,6 +16,10 @@ export class CreateExpenseDto {
   unit_value?: number;
 
   @IsOptional()
+  @IsNumber()
+  unit_cost?: number;
+
+  @IsOptional()
   @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
   sack_size?: number;
 

@@ -30,15 +30,21 @@ export class ExpensesService {
     if (dto.category.toLowerCase() === 'sacks' && dto.sack_size === undefined) {
       throw new BadRequestException('Sack size is required when recording a sack purchase');
     }
+    const usesUnitCost = ['sacks', 'water'].includes(dto.category.toLowerCase());
+    if (usesUnitCost && (dto.unit_value === undefined || dto.unit_cost === undefined)) {
+      throw new BadRequestException('Quantity and cost per unit are required for sacks and water');
+    }
+    const amount = usesUnitCost ? Math.round(dto.unit_value! * dto.unit_cost!) : dto.amount;
     const [newExpense] = await this.db
       .insert(expenses)
       .values({
         user_id: userId,
         date: dto.date,
         category: dto.category,
-        amount: dto.amount,
+        amount,
         unit_value:
           dto.unit_value !== undefined ? String(dto.unit_value) : undefined,
+        unit_cost: dto.unit_cost !== undefined ? String(dto.unit_cost) : undefined,
         sack_size: dto.sack_size,
         paid_by: dto.paid_by,
         method: dto.method,
@@ -58,6 +64,7 @@ export class ExpensesService {
         ...(dto.unit_value !== undefined && {
           unit_value: String(dto.unit_value),
         }),
+        ...(dto.unit_cost !== undefined && { unit_cost: String(dto.unit_cost) }),
         ...(dto.sack_size !== undefined && { sack_size: dto.sack_size }),
         ...(dto.paid_by !== undefined && { paid_by: dto.paid_by }),
         ...(dto.method !== undefined && { method: dto.method }),

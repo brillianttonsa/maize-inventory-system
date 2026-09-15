@@ -8,7 +8,6 @@ import { ExpensesModule } from './modules/expenses/expenses.module';
 import { ProcurementModule } from './modules/procurement/procurement.module';
 import { ProductionModule } from './modules/production/production.module';
 import { SalesModule } from './modules/sales/sales.module';
-// import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { ContactsModule } from './modules/contacts/contacts.module';
 import { SettingsModule } from './modules/settings/settings.module';
 import { InventoryModule } from './modules/inventory/inventory.module';

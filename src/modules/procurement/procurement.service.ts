@@ -23,12 +23,11 @@ export class ProcurementService {
       .values({
         user_id: userId,
         supplier: dto.supplier,
-        quantity: String(dto.quantity),
+        quantity: String(dto.quantity_tons * 1000),
         price_per_kg: String(dto.price_per_kg),
         transport_cost: String(dto.transport_cost),
         total_cost: String(dto.total_cost),
         delivery_date: dto.delivery_date,
-        notes: dto.notes,
       })
       .returning();
     return newOrder;
@@ -39,7 +38,7 @@ export class ProcurementService {
       .update(procurementOrders)
       .set({
         ...(dto.supplier !== undefined && { supplier: dto.supplier }),
-        ...(dto.quantity !== undefined && { quantity: String(dto.quantity) }),
+        ...(dto.quantity_tons !== undefined && { quantity: String(dto.quantity_tons * 1000) }),
         ...(dto.price_per_kg !== undefined && {
           price_per_kg: String(dto.price_per_kg),
         }),
@@ -52,7 +51,6 @@ export class ProcurementService {
         ...(dto.delivery_date !== undefined && {
           delivery_date: dto.delivery_date,
         }),
-        ...(dto.notes !== undefined && { notes: dto.notes }),
         updated_at: new Date(),
       })
       .where(

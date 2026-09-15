@@ -1,37 +1,32 @@
-import { IsDateString, IsIn, IsInt, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsNumber, IsOptional } from 'class-validator';
 
 export class CreateProductionDto {
-  @IsInt()
-  maize_quantity!: number;
+  @IsNumber()
+  maize_tons!: number;
 
+  @IsOptional()
   @IsInt()
-  flour_output!: number;
+  flour_sacks_5kg?: number;
+
+  @IsOptional()
+  @IsInt()
+  flour_sacks_10kg?: number;
+
+  @IsOptional()
+  @IsInt()
+  flour_sacks_25kg?: number;
 
   @IsOptional()
   @IsInt()
   bran_output?: number;
 
+  @IsOptional()
   @IsNumber()
-  bran_unit_count!: number;
-
-  @IsIn(['half_debe', 'debe', 'kisado', 'gunia'])
-  bran_unit!: string;
-
-  @IsInt()
-  water_usage!: number;
-
-  @IsInt()
-  electricity_usage!: number;
-
-  @IsInt()
-  sacks_used!: number;
-
-  @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
-  sack_size!: number;
+  bran_unit_count?: number;
 
   @IsOptional()
-  @IsString()
-  notes?: string;
+  @IsIn(['gunia'])
+  bran_unit?: 'gunia';
 
   @IsDateString()
   date!: string;

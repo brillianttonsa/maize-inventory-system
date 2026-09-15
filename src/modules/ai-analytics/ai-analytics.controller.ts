@@ -1,10 +1,9 @@
 import { Controller, Get, Req, UseGuards } from '@nestjs/common';
 import { AiAnalyticsService } from './ai-analytics.service';
-import { AiAccessGuard } from './guards/ai-access.guard';
 import { type AuthenticatedRequest, JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 
 @Controller('ai')
-@UseGuards(JwtAuthGuard, AiAccessGuard)
+@UseGuards(JwtAuthGuard)
 export class AiAnalyticsController {
   constructor(private readonly aiAnalyticsService: AiAnalyticsService) {}
 

@@ -5,12 +5,7 @@ import { sales } from '../../db/schema';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
 
-const BRAN_DEBE_MULTIPLIERS: Record<string, number> = {
-  half_debe: 0.5,
-  debe: 1,
-  kisado: 0.25,
-  gunia: 7,
-};
+const DEBE_PER_GUNIA = 7;
 
 @Injectable()
 export class SalesService {
@@ -33,8 +28,9 @@ export class SalesService {
       throw new BadRequestException('Sack count and sack size are required for a flour sale');
     }
     const quantity = isBran
-      ? dto.bran_unit_count! * BRAN_DEBE_MULTIPLIERS[dto.bran_unit!]
+      ? dto.bran_unit_count! * DEBE_PER_GUNIA
       : dto.sack_count! * dto.sack_size!;
+    const totalAmount = (isBran ? dto.bran_unit_count! : dto.sack_count!) * dto.price_per_kg;
     const [newSale] = await this.db
       .insert(sales)
       .values({
@@ -52,8 +48,7 @@ export class SalesService {
         delivery_cost: String(dto.delivery_cost),
         delivery_address: dto.delivery_address,
         payment_method: dto.payment_method,
-        total_amount: String(dto.total_amount),
-        notes: dto.notes,
+        total_amount: String(totalAmount),
         date: dto.date,
       })
       .returning();
@@ -93,7 +88,6 @@ export class SalesService {
         ...(dto.total_amount !== undefined && {
           total_amount: String(dto.total_amount),
         }),
-        ...(dto.notes !== undefined && { notes: dto.notes }),
         ...(dto.date !== undefined && { date: dto.date }),
         updated_at: new Date(),
       })

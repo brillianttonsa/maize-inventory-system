@@ -36,6 +36,20 @@
       "when": 1783657200000,
       "tag": "0004_bran_debe_units",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1783660800000,
+      "tag": "0005_simplify_workflows",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1783664400000,
+      "tag": "0006_expense_unit_cost",
+      "breakpoints": true
     }
   ]
 }

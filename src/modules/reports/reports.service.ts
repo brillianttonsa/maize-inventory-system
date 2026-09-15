@@ -108,7 +108,6 @@ export class ReportsService {
         batch.maize_quantity > 0
           ? ((batch.flour_output / batch.maize_quantity) * 100).toFixed(2)
           : '0',
-      Notes: batch.notes || '',
     }));
 
     const headers = [
@@ -178,7 +177,6 @@ export class ReportsService {
       'Total Amount': sale.total_amount,
       'Payment Method': sale.payment_method,
       'Delivery Address': sale.delivery_address,
-      Notes: sale.notes || '',
     }));
 
     const headers = [
@@ -237,7 +235,6 @@ export class ReportsService {
       'Transport Cost': order.transport_cost,
       'Total Cost': order.total_cost,
       'Delivery Date': order.delivery_date,
-      Notes: order.notes || '',
     }));
 
     const headers = [
@@ -450,15 +447,6 @@ export class ReportsService {
     const procurementData = aggregateByDate(orders, { procurementCost: 'total_cost' }, 'delivery_date');
 
     const notes: { type: string; date: any; note: string }[] = [];
-    batches.forEach((b) => {
-      if (b.notes && b.notes.trim()) notes.push({ type: 'Production', date: b.date, note: b.notes });
-    });
-    salesRows.forEach((s) => {
-      if (s.notes && s.notes.trim()) notes.push({ type: 'Sales', date: s.date, note: s.notes });
-    });
-    orders.forEach((o) => {
-      if (o.notes && o.notes.trim()) notes.push({ type: 'Procurement', date: o.delivery_date, note: o.notes });
-    });
     expenseRows.forEach((e) => {
       if (e.description && e.description.trim()) notes.push({ type: 'Expense', date: e.date, note: e.description });
     });

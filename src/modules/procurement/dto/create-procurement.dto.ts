@@ -1,4 +1,4 @@
-import { IsDateString, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsNotEmpty, IsNumber, IsString } from 'class-validator';
 
 export class CreateProcurementDto {
   @IsNotEmpty({ message: 'Supplier is required' })
@@ -6,7 +6,7 @@ export class CreateProcurementDto {
   supplier!: string;
 
   @IsNumber()
-  quantity!: number;
+  quantity_tons!: number;
 
   @IsNumber()
   price_per_kg!: number;
@@ -20,7 +20,4 @@ export class CreateProcurementDto {
   @IsDateString()
   delivery_date!: string;
 
-  @IsOptional()
-  @IsString()
-  notes?: string;
 }

@@ -41,6 +41,11 @@ export function toISODate(date: Date): string {
   return date.toISOString().split('T')[0];
 }
 
+function parseDateOnly(value: string): Date {
+  const [year, month, day] = value.slice(0, 10).split('-').map(Number);
+  return new Date(year, month - 1, day);
+}
+
 export function addDays(date: Date, days: number): Date {
   const d = new Date(date);
   d.setDate(d.getDate() + days);
@@ -58,13 +63,13 @@ export function buildDailySeries(
 
   const totalsByDate = new Map<string, number>();
   records.forEach((r) => {
-    const key = toISODate(new Date(r.date));
+    const key = r.date.length === 10 ? r.date : toISODate(new Date(r.date));
     totalsByDate.set(key, (totalsByDate.get(key) || 0) + r.value);
   });
 
   const dates = Array.from(totalsByDate.keys()).sort();
-  const start = new Date(dates[0]);
-  const end = new Date(dates[dates.length - 1]);
+  const start = parseDateOnly(dates[0]);
+  const end = parseDateOnly(dates[dates.length - 1]);
 
   const series: DailyPoint[] = [];
   for (let d = new Date(start); d <= end; d = addDays(d, 1)) {

@@ -30,10 +30,13 @@ export class AiAnalyticsService {
     const series = buildDailySeries(
       salesRows.map((s) => ({ date: s.date, value: Number(s.total_amount) })),
     );
+    const actual_total_sales = salesRows.reduce((sum, sale) => sum + Number(sale.total_amount), 0);
 
     if (series.length < MIN_DATA_POINTS) {
       return this.insufficientData({
         predicted_total_sales: 0,
+        actual_total_sales,
+        data_points: series.length,
         growth_rate: 0,
         forecast: [],
         product_breakdown: {},
@@ -70,7 +73,7 @@ export class AiAnalyticsService {
       product_breakdown[product] = Math.round((amount / totalRevenue) * predicted_total_sales);
     });
 
-    return { predicted_total_sales, growth_rate, forecast, product_breakdown };
+    return { predicted_total_sales, actual_total_sales, data_points: series.length, growth_rate, forecast, product_breakdown };
   }
 
   // ---------- Inventory prediction ----------
@@ -78,33 +81,28 @@ export class AiAnalyticsService {
   async predictInventory(userId: string) {
     const movements = await this.inventoryService.getMovements(userId);
 
-    if (movements.length < MIN_DATA_POINTS) {
-      return this.insufficientData({
-        current_total_stock: 0,
-        predicted_stock_level: 0,
-        stock_forecast: [],
-        low_stock_items: [],
-      });
-    }
-
-    const items = Array.from(new Set(movements.map((m) => m.item)));
-    const earliestDate = movements.reduce(
-      (min, m) => (new Date(m.date) < min ? new Date(m.date) : min),
-      new Date(),
+    const datedMovements = [...movements].sort(
+      (a, b) => a.date.localeCompare(b.date),
     );
+
+    const items = Array.from(new Set(datedMovements.map((m) => m.item)));
+    const earliestDate = datedMovements.length > 0 ? new Date(datedMovements[0].date) : new Date();
     const daysSpan = Math.max(
       1,
       Math.ceil((Date.now() - earliestDate.getTime()) / (1000 * 60 * 60 * 24)),
     );
 
     const stock_forecast = items.map((item) => {
-      const itemMovements = movements.filter((m) => m.item === item);
-      const current = itemMovements[itemMovements.length - 1]?.balance ?? 0;
+      const itemMovements = datedMovements.filter((m) => m.item === item);
+      const current = itemMovements.reduce(
+        (balance, movement) => balance + movement.quantityIn - movement.quantityOut,
+        0,
+      );
       const netTotal = itemMovements.reduce(
         (sum, m) => sum + (m.quantityIn - m.quantityOut),
         0,
       );
-      const dailyNetRate = netTotal / daysSpan;
+      const dailyNetRate = itemMovements.length > 1 ? netTotal / daysSpan : 0;
       const predicted = Math.max(0, Math.round(current + dailyNetRate * FORECAST_DAYS));
 
       return { item, current: Math.round(current), predicted };
@@ -117,7 +115,8 @@ export class AiAnalyticsService {
       .filter((s) => s.predicted < LOW_STOCK_THRESHOLD_KG)
       .map((s) => ({ name: s.item, quantity: s.predicted }));
 
-    return { current_total_stock, predicted_stock_level, stock_forecast, low_stock_items };
+    const result = { current_total_stock, predicted_stock_level, stock_forecast, low_stock_items, data_points: datedMovements.length };
+    return datedMovements.length < MIN_DATA_POINTS ? this.insufficientData(result) : result;
   }
 
   // ---------- Yield prediction ----------
@@ -128,18 +127,6 @@ export class AiAnalyticsService {
       orderBy: (t, { asc }) => asc(t.date),
     });
 
-    if (batches.length < MIN_DATA_POINTS) {
-      return this.insufficientData({
-        predicted_flour_yield: 0,
-        predicted_bran_yield: 0,
-        production_efficiency: 0,
-        yield_history: [],
-        efficiency_tips: [
-          'Not enough production history yet — record at least a week of batches for a reliable yield prediction.',
-        ],
-      });
-    }
-
     const yield_history = batches.map((b) => ({
       date: b.date,
       flour_yield: b.maize_quantity > 0 ? (b.flour_output / b.maize_quantity) * 100 : 0,
@@ -149,7 +136,7 @@ export class AiAnalyticsService {
     // Weight recent batches more heavily by just averaging the last 30 (or all, if fewer)
     const recent = yield_history.slice(-30);
     const avg = (key: 'flour_yield' | 'bran_yield') =>
-      recent.reduce((sum, r) => sum + r[key], 0) / recent.length;
+      recent.reduce((sum, r) => sum + r[key], 0) / (recent.length || 1);
 
     const predicted_flour_yield = avg('flour_yield');
     const predicted_bran_yield = avg('bran_yield');
@@ -164,7 +151,7 @@ export class AiAnalyticsService {
       recent.slice(half).reduce((s, r) => s + r.flour_yield + r.bran_yield, 0) /
       (recent.length - half || 1);
 
-    if (laterAvg < earlierAvg - 2) {
+    if (recent.length >= 4 && laterAvg < earlierAvg - 2) {
       efficiency_tips.push(
         'Overall yield has been trending down recently — worth checking milling equipment calibration.',
       );
@@ -175,10 +162,15 @@ export class AiAnalyticsService {
       );
     }
     if (efficiency_tips.length === 0) {
-      efficiency_tips.push('Yield is stable — no action needed based on recent batches.');
+      efficiency_tips.push(
+        batches.length < MIN_DATA_POINTS
+          ? 'Record at least seven production batches for a stronger yield trend.'
+          : 'Yield is stable — no action needed based on recent batches.',
+      );
     }
 
-    return { predicted_flour_yield, predicted_bran_yield, production_efficiency, yield_history, efficiency_tips };
+    const result = { predicted_flour_yield, predicted_bran_yield, production_efficiency, yield_history, efficiency_tips, data_points: batches.length };
+    return batches.length < MIN_DATA_POINTS ? this.insufficientData(result) : result;
   }
 
   // ---------- Profit prediction ----------
@@ -197,12 +189,20 @@ export class AiAnalyticsService {
       ...procurementRows.map((p) => ({ date: p.delivery_date, value: Number(p.total_cost) })),
       ...expenseRows.map((e) => ({ date: e.date, value: Number(e.amount) })),
     ]);
+    const actual_revenue = salesRows.reduce((sum, sale) => sum + Number(sale.total_amount), 0);
+    const actual_costs = [...procurementRows, ...expenseRows].reduce(
+      (sum, row) => sum + Number('total_cost' in row ? row.total_cost : row.amount),
+      0,
+    );
 
     if (revenueSeries.length < MIN_DATA_POINTS || costSeries.length < MIN_DATA_POINTS) {
       return this.insufficientData({
         predicted_revenue: 0,
         predicted_costs: 0,
         predicted_profit: 0,
+        actual_revenue,
+        actual_costs,
+        data_points: Math.min(revenueSeries.length, costSeries.length),
         profit_trend: [],
       });
     }
@@ -221,7 +221,7 @@ export class AiAnalyticsService {
     const predicted_costs = profit_trend.reduce((sum, p) => sum + p.costs, 0);
     const predicted_profit = predicted_revenue - predicted_costs;
 
-    return { predicted_revenue, predicted_costs, predicted_profit, profit_trend };
+    return { predicted_revenue, predicted_costs, predicted_profit, actual_revenue, actual_costs, data_points: Math.min(revenueSeries.length, costSeries.length), profit_trend };
   }
 
   // ---------- Alerts (rule-based, not statistical) ----------
@@ -246,7 +246,14 @@ export class AiAnalyticsService {
       });
     });
 
-    if (profit.predicted_profit < 0) {
+    if ('insufficient_data' in profit) {
+      alerts.push({
+        severity: 'info',
+        title: 'More financial history needed',
+        message: 'Record at least seven days of sales and costs to generate a reliable profit forecast.',
+        action: 'Keep recording sales, procurement, and expenses.',
+      });
+    } else if (profit.predicted_profit < 0) {
       alerts.push({
         severity: 'warning',
         title: 'Projected Loss Ahead',
