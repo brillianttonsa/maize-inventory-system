@@ -38,13 +38,8 @@ export class ProductionService {
         flour_sacks_5kg: flour5,
         flour_sacks_10kg: flour10,
         flour_sacks_25kg: flour25,
-        bran_output: 0,
         bran_debe_quantity: String(branGunia * DEBE_PER_GUNIA),
         bran_unit: 'gunia',
-        // Retained database columns for historical records; no longer part of production entry.
-        water_usage: 0,
-        electricity_usage: 0,
-        sacks_used: 0,
         date: dto.date,
       })
       .returning();

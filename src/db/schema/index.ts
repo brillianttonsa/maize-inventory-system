@@ -39,14 +39,8 @@ export const productionBatches = pgTable('production_batches', {
   flour_sacks_5kg: integer('flour_sacks_5kg').default(0).notNull(),
   flour_sacks_10kg: integer('flour_sacks_10kg').default(0).notNull(),
   flour_sacks_25kg: integer('flour_sacks_25kg').default(0).notNull(),
-  bran_output: integer('bran_output').notNull(),
   bran_debe_quantity: numeric('bran_debe_quantity', { precision: 12, scale: 2 }),
   bran_unit: varchar('bran_unit', { length: 20 }),
-  water_usage: integer('water_usage').notNull(),
-  electricity_usage: integer('electricity_usage').notNull(),
-  sacks_used: integer('sacks_used').notNull(),
-  // Null is retained for production records created before sized sack tracking.
-  sack_size: integer('sack_size'),
   date: date('date').notNull(),
   created_at: timestamp('created_at').defaultNow(),
 });

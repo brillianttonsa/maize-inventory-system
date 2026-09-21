@@ -50,6 +50,13 @@
       "when": 1783664400000,
       "tag": "0006_expense_unit_cost",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1783668000000,
+      "tag": "0007_remove_legacy_production_columns",
+      "breakpoints": true
     }
   ]
 }

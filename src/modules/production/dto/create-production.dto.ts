@@ -17,10 +17,6 @@ export class CreateProductionDto {
   flour_sacks_25kg?: number;
 
   @IsOptional()
-  @IsInt()
-  bran_output?: number;
-
-  @IsOptional()
   @IsNumber()
   bran_unit_count?: number;
 

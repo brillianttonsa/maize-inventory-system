@@ -29,7 +29,10 @@ export class ReportsController {
   }
 
   @Get('comprehensive')
-  getComprehensive(@Req() req: AuthenticatedRequest) {
-    return this.reportsService.getComprehensiveReport(req.user.id);
+  async getComprehensive(@Req() req: AuthenticatedRequest, @Res() res: Response) {
+    const { filename, csv } = await this.reportsService.generateComprehensiveReport(req.user.id);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
   }
 }

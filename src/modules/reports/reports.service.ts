@@ -6,7 +6,6 @@ import {
   sales,
   procurementOrders,
   expenses,
-  users,
 } from '../../db/schema';
 import { ReportType } from './dto/generate-report.dto';
 
@@ -29,28 +28,6 @@ function convertToCSV(data: Record<string, any>[], headers: string[]): string {
   return [csvHeaders, ...csvRows].join('\n');
 }
 
-// Aggregate items by date for chart series
-function aggregateByDate(
-  items: Record<string, any>[],
-  keyMap: Record<string, string>,
-  dateKey = 'date',
-): Array<{ period: string; [key: string]: any }> {
-  const map: Record<string, Record<string, number>> = {};
-  items.forEach((item) => {
-    const dateObj = new Date(item[dateKey] || item.created_at);
-    const localDate = new Date(
-      dateObj.getTime() - dateObj.getTimezoneOffset() * 60000,
-    );
-    const date = localDate.toISOString().split('T')[0];
-
-    if (!map[date]) map[date] = {};
-    Object.keys(keyMap).forEach((k) => {
-      map[date][k] = (map[date][k] || 0) + parseFloat(item[keyMap[k]] || 0);
-    });
-  });
-  return Object.entries(map).map(([period, values]) => ({ period, ...values }));
-}
-
 @Injectable()
 export class ReportsService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
@@ -69,9 +46,6 @@ export class ReportsService {
           totalMaizeProcessed: 0,
           totalFlourProduced: 0,
           totalBranProduced: 0,
-          totalWaterUsed: 0,
-          totalElectricityUsed: 0,
-          totalSacksUsed: 0,
           averageEfficiency: '0%',
         },
       };
@@ -81,10 +55,7 @@ export class ReportsService {
       totalBatches: batches.length,
       totalMaizeProcessed: batches.reduce((s, b) => s + Number(b.maize_quantity || 0), 0),
       totalFlourProduced: batches.reduce((s, b) => s + Number(b.flour_output || 0), 0),
-      totalBranProduced: batches.reduce((s, b) => s + Number(b.bran_output || 0), 0),
-      totalWaterUsed: batches.reduce((s, b) => s + Number(b.water_usage || 0), 0),
-      totalElectricityUsed: batches.reduce((s, b) => s + Number(b.electricity_usage || 0), 0),
-      totalSacksUsed: batches.reduce((s, b) => s + Number(b.sacks_used || 0), 0),
+      totalBranProduced: batches.reduce((s, b) => s + Number(b.bran_debe_quantity || 0), 0),
     };
 
     const totalEfficiency = batches.reduce((sum, b) => {
@@ -100,10 +71,7 @@ export class ReportsService {
       Date: batch.date,
       'Maize Quantity (kg)': batch.maize_quantity,
       'Flour Output (kg)': batch.flour_output,
-      'Bran Output (kg)': batch.bran_output,
-      'Water Usage (L)': batch.water_usage,
-      'Electricity Usage (kWh)': batch.electricity_usage,
-      'Sacks Used': batch.sacks_used,
+      'Bran Output (debe)': batch.bran_debe_quantity,
       'Efficiency (%)':
         batch.maize_quantity > 0
           ? ((batch.flour_output / batch.maize_quantity) * 100).toFixed(2)
@@ -111,12 +79,12 @@ export class ReportsService {
     }));
 
     const headers = [
-      'Batch ID', 'Date', 'Maize Quantity (kg)', 'Flour Output (kg)', 'Bran Output (kg)',
-      'Water Usage (L)', 'Electricity Usage (kWh)', 'Sacks Used', 'Efficiency (%)', 'Notes',
+      'Batch ID', 'Date', 'Maize Quantity (kg)', 'Flour Output (kg)', 'Bran Output (debe)',
+      'Efficiency (%)',
     ];
     const csv = convertToCSV(csvData, headers);
 
-    const summaryCSV = `\n\n=== SUMMARY ===\nTotal Batches,${summary.totalBatches}\nTotal Maize Processed (kg),${summary.totalMaizeProcessed}\nTotal Flour Produced (kg),${summary.totalFlourProduced}\nTotal Bran Produced (kg),${summary.totalBranProduced}\nTotal Water Used (L),${summary.totalWaterUsed}\nTotal Electricity Used (kWh),${summary.totalElectricityUsed}\nTotal Sacks Used,${summary.totalSacksUsed}\nAverage Efficiency,${summary.averageEfficiency}`;
+    const summaryCSV = `\n\n=== SUMMARY ===\nTotal Batches,${summary.totalBatches}\nTotal Maize Processed (kg),${summary.totalMaizeProcessed}\nTotal Flour Produced (kg),${summary.totalFlourProduced}\nTotal Bran Produced (debe),${summary.totalBranProduced}\nAverage Efficiency,${summary.averageEfficiency}`;
 
     return { csv: csv + summaryCSV, summary };
   }
@@ -182,7 +150,7 @@ export class ReportsService {
     const headers = [
       'Sale ID', 'Date', 'Customer Name', 'Customer Contact', 'Product Type',
       'Quantity (kg)', 'Price per kg', 'Delivery Cost', 'Total Amount',
-      'Payment Method', 'Delivery Address', 'Notes',
+      'Payment Method', 'Delivery Address',
     ];
     const csv = convertToCSV(csvData, headers);
 
@@ -239,7 +207,7 @@ export class ReportsService {
 
     const headers = [
       'Order ID', 'Supplier', 'Quantity (kg)', 'Price per kg',
-      'Transport Cost', 'Total Cost', 'Delivery Date', 'Notes',
+      'Transport Cost', 'Total Cost', 'Delivery Date',
     ];
     const csv = convertToCSV(csvData, headers);
 
@@ -338,8 +306,8 @@ export class ReportsService {
     return { filename, csv: headerCSV + reportData.csv };
   }
 
-  // ---------- Comprehensive report data (JSON) ----------
-  async getComprehensiveReportData(userId: string) {
+  // ---------- Comprehensive CSV: all transactions and summary reviews ----------
+  async generateComprehensiveReport(userId: string) {
     const [batches, salesRows, orders, expenseRows] = await Promise.all([
       this.db.query.productionBatches.findMany({ where: eq(productionBatches.user_id, userId) }),
       this.db.query.sales.findMany({ where: eq(sales.user_id, userId) }),
@@ -351,10 +319,7 @@ export class ReportsService {
       totalBatches: batches.length,
       totalMaizeProcessed: batches.reduce((s, b) => s + Number(b.maize_quantity || 0), 0),
       totalFlourProduced: batches.reduce((s, b) => s + Number(b.flour_output || 0), 0),
-      totalBranProduced: batches.reduce((s, b) => s + Number(b.bran_output || 0), 0),
-      totalWaterUsed: batches.reduce((s, b) => s + Number(b.water_usage || 0), 0),
-      totalElectricityUsed: batches.reduce((s, b) => s + Number(b.electricity_usage || 0), 0),
-      totalSacksUsed: batches.reduce((s, b) => s + Number(b.sacks_used || 0), 0),
+      totalBranProduced: batches.reduce((s, b) => s + Number(b.bran_debe_quantity || 0), 0),
     };
     const totalEfficiency = batches.reduce((sum, b) => {
       if (b.maize_quantity > 0) return sum + (b.flour_output / b.maize_quantity) * 100;
@@ -433,63 +398,75 @@ export class ReportsService {
         (revenueByProduct[sale.product_type] || 0) + Number(sale.total_amount || 0);
     });
 
-    const revenueData = aggregateByDate(salesRows, { revenue: 'total_amount' });
-    const expensesData = aggregateByDate(expenseRows, { expenses: 'amount' });
-    const revenueExpensesData = revenueData.map((d) => ({
-      ...d,
-      expenses: expensesData.find((e) => e.period === d.period)?.expenses || 0,
-    }));
-    const productionData = aggregateByDate(batches, {
-      maizeProcessed: 'maize_quantity',
-      flourProduced: 'flour_output',
-      branProduced: 'bran_output',
-    });
-    const procurementData = aggregateByDate(orders, { procurementCost: 'total_cost' }, 'delivery_date');
+    const section = (title: string, rows: Record<string, any>[], headers: string[]) =>
+      [`=== ${title} ===`, rows.length ? convertToCSV(rows, headers) : 'No transactions recorded'].join('\n');
 
-    const notes: { type: string; date: any; note: string }[] = [];
-    expenseRows.forEach((e) => {
-      if (e.description && e.description.trim()) notes.push({ type: 'Expense', date: e.date, note: e.description });
-    });
+    const summaryRows = [
+      { Category: 'Financial', Metric: 'Total Revenue (TSh)', Value: totalRevenue },
+      { Category: 'Financial', Metric: 'Operating Expenses (TSh)', Value: totalExpenses },
+      { Category: 'Financial', Metric: 'Procurement Cost (TSh)', Value: totalProcurementCost },
+      { Category: 'Financial', Metric: 'Total Costs (TSh)', Value: totalCosts },
+      { Category: 'Financial', Metric: 'Profit (TSh)', Value: profit },
+      { Category: 'Financial', Metric: 'Profit Margin (%)', Value: profitMargin },
+      { Category: 'Production', Metric: 'Total Batches', Value: productionSummary.totalBatches },
+      { Category: 'Production', Metric: 'Maize Processed (kg)', Value: productionSummary.totalMaizeProcessed },
+      { Category: 'Production', Metric: 'Flour Produced (kg)', Value: productionSummary.totalFlourProduced },
+      { Category: 'Production', Metric: 'Bran Produced (debe)', Value: productionSummary.totalBranProduced },
+      { Category: 'Production', Metric: 'Average Efficiency (%)', Value: productionSummary.averageEfficiency },
+      { Category: 'Sales', Metric: 'Total Orders', Value: salesSummary.totalOrders },
+      { Category: 'Sales', Metric: 'Flour Sold (kg)', Value: salesSummary.totalFlourSales },
+      { Category: 'Sales', Metric: 'Bran Sold (kg)', Value: salesSummary.totalBranSales },
+      { Category: 'Procurement', Metric: 'Total Orders', Value: procurementSummary.totalOrders },
+      { Category: 'Procurement', Metric: 'Maize Purchased (kg)', Value: procurementSummary.totalQuantity },
+      { Category: 'Expenses', Metric: 'Number of Transactions', Value: expensesSummary.totalCount },
+    ];
+
+    const csv = [
+      '=== COMPREHENSIVE BUSINESS REPORT ===',
+      `Generated At,${new Date().toISOString()}`,
+      '',
+      section('SUMMARY REVIEW', summaryRows, ['Category', 'Metric', 'Value']),
+      '',
+      section('PRODUCTION TRANSACTIONS', batches.map((batch) => ({
+        'Batch ID': batch.id, Date: batch.date, 'Maize Quantity (kg)': batch.maize_quantity,
+        'Flour 5 kg Sacks': batch.flour_sacks_5kg, 'Flour 10 kg Sacks': batch.flour_sacks_10kg,
+        'Flour 25 kg Sacks': batch.flour_sacks_25kg, 'Flour Output (kg)': batch.flour_output,
+        'Bran Quantity (debe)': batch.bran_debe_quantity, 'Bran Unit': batch.bran_unit, 'Created At': batch.created_at,
+      })), ['Batch ID', 'Date', 'Maize Quantity (kg)', 'Flour 5 kg Sacks', 'Flour 10 kg Sacks', 'Flour 25 kg Sacks', 'Flour Output (kg)', 'Bran Quantity (debe)', 'Bran Unit', 'Created At']),
+      '',
+      section('SALES TRANSACTIONS', salesRows.map((sale) => ({
+        'Sale ID': sale.id, Date: sale.date, Customer: sale.customer_name, Contact: sale.customer_contact,
+        Product: sale.product_type, 'Quantity (kg)': sale.quantity, 'Flour Sack Count': sale.sack_count,
+        'Flour Sack Size (kg)': sale.sack_size, 'Bran Quantity (debe)': sale.bran_debe_quantity,
+        'Bran Unit Count': sale.bran_unit_count, 'Bran Unit': sale.bran_unit, 'Price per Unit (TSh)': sale.price_per_kg,
+        'Delivery Cost (TSh)': sale.delivery_cost, 'Total Amount (TSh)': sale.total_amount,
+        'Payment Method': sale.payment_method, 'Delivery Address': sale.delivery_address, 'Created At': sale.created_at,
+      })), ['Sale ID', 'Date', 'Customer', 'Contact', 'Product', 'Quantity (kg)', 'Flour Sack Count', 'Flour Sack Size (kg)', 'Bran Quantity (debe)', 'Bran Unit Count', 'Bran Unit', 'Price per Unit (TSh)', 'Delivery Cost (TSh)', 'Total Amount (TSh)', 'Payment Method', 'Delivery Address', 'Created At']),
+      '',
+      section('PROCUREMENT TRANSACTIONS', orders.map((order) => ({
+        'Order ID': order.id, Supplier: order.supplier, 'Quantity (kg)': order.quantity,
+        'Price per kg (TSh)': order.price_per_kg, 'Transport Cost (TSh)': order.transport_cost,
+        'Total Cost (TSh)': order.total_cost, 'Delivery Date': order.delivery_date, 'Created At': order.created_at,
+      })), ['Order ID', 'Supplier', 'Quantity (kg)', 'Price per kg (TSh)', 'Transport Cost (TSh)', 'Total Cost (TSh)', 'Delivery Date', 'Created At']),
+      '',
+      section('EXPENSE TRANSACTIONS', expenseRows.map((expense) => ({
+        'Expense ID': expense.id, Date: expense.date, Category: expense.category, 'Quantity / Units': expense.unit_value,
+        'Unit Cost (TSh)': expense.unit_cost, 'Sack Size (kg)': expense.sack_size, 'Amount (TSh)': expense.amount,
+        'Paid By': expense.paid_by, Method: expense.method, Notes: expense.notes, 'Created At': expense.created_at,
+      })), ['Expense ID', 'Date', 'Category', 'Quantity / Units', 'Unit Cost (TSh)', 'Sack Size (kg)', 'Amount (TSh)', 'Paid By', 'Method', 'Notes', 'Created At']),
+      '',
+      section('TOP CUSTOMERS REVIEW', topCustomers.map((customer) => ({ Customer: customer.name, Orders: customer.count, 'Total Spent (TSh)': customer.total })), ['Customer', 'Orders', 'Total Spent (TSh)']),
+      '',
+      section('SUPPLIER REVIEW', supplierStats.map((supplier) => ({ Supplier: supplier.name, Orders: supplier.orders, 'Total Quantity (kg)': supplier.totalQuantity, 'Total Cost (TSh)': supplier.totalCost })), ['Supplier', 'Orders', 'Total Quantity (kg)', 'Total Cost (TSh)']),
+      '',
+      section('EXPENSES BY CATEGORY REVIEW', Object.entries(expenseByCategory).map(([category, amount]) => ({ Category: category, 'Amount (TSh)': amount })), ['Category', 'Amount (TSh)']),
+      '',
+      section('REVENUE BY PRODUCT REVIEW', Object.entries(revenueByProduct).map(([product, amount]) => ({ Product: product, 'Revenue (TSh)': amount })), ['Product', 'Revenue (TSh)']),
+    ].join('\n');
 
     return {
-      production: {
-        summary: productionSummary,
-        batches: batches.slice(0, 10),
-        chartData: productionData,
-      },
-      sales: {
-        summary: salesSummary,
-        topCustomers,
-        revenueByProduct,
-        chartData: revenueExpensesData,
-      },
-      procurement: {
-        summary: procurementSummary,
-        supplierStats,
-        chartData: procurementData,
-      },
-      expenses: {
-        summary: expensesSummary,
-        byCategory: expenseByCategory,
-      },
-      financial: {
-        totalRevenue,
-        totalExpenses,
-        totalProcurementCost,
-        totalCosts,
-        profit,
-        profitMargin,
-      },
-      notes: notes
-        .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
-        .slice(0, 20),
+      filename: `comprehensive_report_${new Date().toISOString().split('T')[0]}.csv`,
+      csv,
     };
-  }
-
-  async getComprehensiveReport(userId: string) {
-    const user = await this.db.query.users.findFirst({ where: eq(users.id, userId) });
-    const userName = user?.name || user?.username || 'User';
-    const data = await this.getComprehensiveReportData(userId);
-    return { userName, generatedAt: new Date().toISOString(), ...data };
   }
 }

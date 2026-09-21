@@ -89,16 +89,14 @@ export class InventoryService {
         source: 'Production',
         remarks: `Produced ${p.flour_output} kg of Flour`,
       });
-      const branQuantity = p.bran_debe_quantity !== null ? Number(p.bran_debe_quantity) : Number(p.bran_output);
+      const branQuantity = Number(p.bran_debe_quantity || 0);
       movements.push({
         date: localDate,
-        item: p.bran_debe_quantity !== null ? 'Bran (debe)' : 'Bran (legacy kg)',
+        item: 'Bran (debe)',
         quantityIn: branQuantity,
         quantityOut: 0,
         source: 'Production',
-        remarks: p.bran_debe_quantity !== null
-          ? `Produced ${p.bran_debe_quantity} debe of Bran (${p.bran_unit})`
-          : `Produced ${p.bran_output} kg of Bran (legacy)`,
+        remarks: `Produced ${p.bran_debe_quantity || 0} debe of Bran (${p.bran_unit || 'gunia'})`,
       });
       ([5, 10, 25] as const).forEach((size) => {
         const count = p[`flour_sacks_${size}kg`];
