@@ -6,6 +6,8 @@ import {
   sales,
   procurementOrders,
   expenses,
+  type ProductionBatch,
+  type Sale,
 } from '../../db/schema';
 import { ReportType } from './dto/generate-report.dto';
 
@@ -26,6 +28,36 @@ function convertToCSV(data: Record<string, any>[], headers: string[]): string {
       .join(','),
   );
   return [csvHeaders, ...csvRows].join('\n');
+}
+
+function formatReportDate(value: string | Date | null | undefined): string {
+  if (!value) return '';
+  const date = typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value)
+    ? new Date(`${value}T00:00:00Z`)
+    : new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return new Intl.DateTimeFormat('en-GB', {
+    day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC',
+  }).format(date);
+}
+
+function calculateSackProductionBalances(
+  batches: ProductionBatch[],
+  salesRows: Sale[],
+) {
+  return ([5, 10, 25] as const).map((size) => {
+    const produced = batches.reduce(
+      (sum, batch) => sum + Number(batch[`flour_sacks_${size}kg`] || 0),
+      0,
+    );
+    const sold = salesRows
+      .filter(
+        (sale) =>
+          sale.product_type.toLowerCase() === 'flour' && sale.sack_size === size,
+      )
+      .reduce((sum, sale) => sum + Number(sale.sack_count || 0), 0);
+    return { size, produced, sold, remaining: produced - sold };
+  });
 }
 
 @Injectable()
@@ -67,8 +99,7 @@ export class ReportsService {
     summary.averageEfficiency = `${(totalEfficiency / batches.length).toFixed(2)}%`;
 
     const csvData = batches.map((batch) => ({
-      'Batch ID': batch.id,
-      Date: batch.date,
+      Date: formatReportDate(batch.date),
       'Maize Quantity (kg)': batch.maize_quantity,
       'Flour Output (kg)': batch.flour_output,
       'Bran Output (debe)': batch.bran_debe_quantity,
@@ -79,7 +110,7 @@ export class ReportsService {
     }));
 
     const headers = [
-      'Batch ID', 'Date', 'Maize Quantity (kg)', 'Flour Output (kg)', 'Bran Output (debe)',
+      'Date', 'Maize Quantity (kg)', 'Flour Output (kg)', 'Bran Output (debe)',
       'Efficiency (%)',
     ];
     const csv = convertToCSV(csvData, headers);
@@ -91,9 +122,12 @@ export class ReportsService {
 
   // ---------- CSV report: Sales ----------
   private async generateSalesReport(userId: string) {
-    const salesRows = await this.db.query.sales.findMany({
-      where: eq(sales.user_id, userId),
-    });
+    const [salesRows, batches] = await Promise.all([
+      this.db.query.sales.findMany({ where: eq(sales.user_id, userId) }),
+      this.db.query.productionBatches.findMany({
+        where: eq(productionBatches.user_id, userId),
+      }),
+    ]);
 
     if (salesRows.length === 0) {
       return {
@@ -120,22 +154,10 @@ export class ReportsService {
     };
     summary.averageOrderValue = (summary.totalRevenue / salesRows.length).toFixed(2);
 
-    const customerMap: Record<string, { count: number; total: number }> = {};
-    salesRows.forEach((sale) => {
-      if (!customerMap[sale.customer_name]) {
-        customerMap[sale.customer_name] = { count: 0, total: 0 };
-      }
-      customerMap[sale.customer_name].count++;
-      customerMap[sale.customer_name].total += Number(sale.total_amount || 0);
-    });
-    const topCustomers = Object.entries(customerMap)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+    const sackBalances = calculateSackProductionBalances(batches, salesRows);
 
     const csvData = salesRows.map((sale) => ({
-      'Sale ID': sale.id,
-      Date: sale.date,
+      Date: formatReportDate(sale.date),
       'Customer Name': sale.customer_name,
       'Customer Contact': sale.customer_contact,
       'Product Type': sale.product_type,
@@ -148,15 +170,15 @@ export class ReportsService {
     }));
 
     const headers = [
-      'Sale ID', 'Date', 'Customer Name', 'Customer Contact', 'Product Type',
+      'Date', 'Customer Name', 'Customer Contact', 'Product Type',
       'Quantity (kg)', 'Price per kg', 'Delivery Cost', 'Total Amount',
       'Payment Method', 'Delivery Address',
     ];
     const csv = convertToCSV(csvData, headers);
 
-    const summaryCSV = `\n\n=== SUMMARY ===\nTotal Orders,${summary.totalOrders}\nTotal Revenue,${summary.totalRevenue}\nTotal Flour Sales (kg),${summary.totalFlourSales}\nTotal Bran Sales (kg),${summary.totalBranSales}\nAverage Order Value,${summary.averageOrderValue}\n\n=== TOP 5 CUSTOMERS ===\nCustomer Name,Orders,Total Spent\n${topCustomers.map((c) => `${c.name},${c.count},${c.total}`).join('\n')}`;
+    const summaryCSV = `\n\n=== SUMMARY ===\nTotal Orders,${summary.totalOrders}\nTotal Revenue,${summary.totalRevenue}\nTotal Flour Sales (kg),${summary.totalFlourSales}\nTotal Bran Sales (kg),${summary.totalBranSales}\nAverage Order Value,${summary.averageOrderValue}\n\n=== SACK PRODUCTION VS SALES ===\nSack Size,Produced,Sold,Remaining\n${sackBalances.map((sack) => `${sack.size} kg,${sack.produced},${sack.sold},${sack.remaining}`).join('\n')}`;
 
-    return { csv: csv + summaryCSV, summary: { ...summary, topCustomers } };
+    return { csv: csv + summaryCSV, summary: { ...summary, sackBalances } };
   }
 
   // ---------- CSV report: Procurement ----------
@@ -196,17 +218,16 @@ export class ReportsService {
       .sort((a, b) => b.totalCost - a.totalCost);
 
     const csvData = orders.map((order) => ({
-      'Order ID': order.id,
       Supplier: order.supplier,
       'Quantity (kg)': order.quantity,
       'Price per kg': order.price_per_kg,
       'Transport Cost': order.transport_cost,
       'Total Cost': order.total_cost,
-      'Delivery Date': order.delivery_date,
+      'Delivery Date': formatReportDate(order.delivery_date),
     }));
 
     const headers = [
-      'Order ID', 'Supplier', 'Quantity (kg)', 'Price per kg',
+      'Supplier', 'Quantity (kg)', 'Price per kg',
       'Transport Cost', 'Total Cost', 'Delivery Date',
     ];
     const csv = convertToCSV(csvData, headers);
@@ -301,7 +322,7 @@ export class ReportsService {
     const reportData = await generators[type]();
     const reportTitle = titles[type];
     const filename = `${type}_report_${new Date().toISOString().split('T')[0]}.csv`;
-    const headerCSV = `=== ${reportTitle.toUpperCase()} ===\nGenerated on: ${new Date().toLocaleString()}\n\n`;
+    const headerCSV = `=== ${reportTitle.toUpperCase()} ===\nGenerated on: ${formatReportDate(new Date())}\n\n`;
 
     return { filename, csv: headerCSV + reportData.csv };
   }
@@ -341,16 +362,7 @@ export class ReportsService {
     salesSummary.averageOrderValue =
       salesRows.length > 0 ? (salesSummary.totalRevenue / salesRows.length).toFixed(2) : 0;
 
-    const customerMap: Record<string, { count: number; total: number }> = {};
-    salesRows.forEach((sale) => {
-      if (!customerMap[sale.customer_name]) customerMap[sale.customer_name] = { count: 0, total: 0 };
-      customerMap[sale.customer_name].count++;
-      customerMap[sale.customer_name].total += Number(sale.total_amount || 0);
-    });
-    const topCustomers = Object.entries(customerMap)
-      .map(([name, data]) => ({ name, ...data }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
+    const sackBalances = calculateSackProductionBalances(batches, salesRows);
 
     const procurementSummary: Record<string, any> = {
       totalOrders: orders.length,
@@ -423,39 +435,41 @@ export class ReportsService {
 
     const csv = [
       '=== COMPREHENSIVE BUSINESS REPORT ===',
-      `Generated At,${new Date().toISOString()}`,
+      `Generated On,${formatReportDate(new Date())}`,
       '',
       section('SUMMARY REVIEW', summaryRows, ['Category', 'Metric', 'Value']),
       '',
       section('PRODUCTION TRANSACTIONS', batches.map((batch) => ({
-        'Batch ID': batch.id, Date: batch.date, 'Maize Quantity (kg)': batch.maize_quantity,
+        Date: formatReportDate(batch.date), 'Maize Quantity (kg)': batch.maize_quantity,
         'Flour 5 kg Sacks': batch.flour_sacks_5kg, 'Flour 10 kg Sacks': batch.flour_sacks_10kg,
         'Flour 25 kg Sacks': batch.flour_sacks_25kg, 'Flour Output (kg)': batch.flour_output,
-        'Bran Quantity (debe)': batch.bran_debe_quantity, 'Bran Unit': batch.bran_unit, 'Created At': batch.created_at,
-      })), ['Batch ID', 'Date', 'Maize Quantity (kg)', 'Flour 5 kg Sacks', 'Flour 10 kg Sacks', 'Flour 25 kg Sacks', 'Flour Output (kg)', 'Bran Quantity (debe)', 'Bran Unit', 'Created At']),
+        'Bran Quantity (debe)': batch.bran_debe_quantity, 'Bran Unit': batch.bran_unit,
+      })), ['Date', 'Maize Quantity (kg)', 'Flour 5 kg Sacks', 'Flour 10 kg Sacks', 'Flour 25 kg Sacks', 'Flour Output (kg)', 'Bran Quantity (debe)', 'Bran Unit']),
       '',
       section('SALES TRANSACTIONS', salesRows.map((sale) => ({
-        'Sale ID': sale.id, Date: sale.date, Customer: sale.customer_name, Contact: sale.customer_contact,
+        Date: formatReportDate(sale.date), Customer: sale.customer_name, Contact: sale.customer_contact,
         Product: sale.product_type, 'Quantity (kg)': sale.quantity, 'Flour Sack Count': sale.sack_count,
         'Flour Sack Size (kg)': sale.sack_size, 'Bran Quantity (debe)': sale.bran_debe_quantity,
         'Bran Unit Count': sale.bran_unit_count, 'Bran Unit': sale.bran_unit, 'Price per Unit (TSh)': sale.price_per_kg,
         'Delivery Cost (TSh)': sale.delivery_cost, 'Total Amount (TSh)': sale.total_amount,
-        'Payment Method': sale.payment_method, 'Delivery Address': sale.delivery_address, 'Created At': sale.created_at,
-      })), ['Sale ID', 'Date', 'Customer', 'Contact', 'Product', 'Quantity (kg)', 'Flour Sack Count', 'Flour Sack Size (kg)', 'Bran Quantity (debe)', 'Bran Unit Count', 'Bran Unit', 'Price per Unit (TSh)', 'Delivery Cost (TSh)', 'Total Amount (TSh)', 'Payment Method', 'Delivery Address', 'Created At']),
+        'Payment Method': sale.payment_method, 'Delivery Address': sale.delivery_address,
+      })), ['Date', 'Customer', 'Contact', 'Product', 'Quantity (kg)', 'Flour Sack Count', 'Flour Sack Size (kg)', 'Bran Quantity (debe)', 'Bran Unit Count', 'Bran Unit', 'Price per Unit (TSh)', 'Delivery Cost (TSh)', 'Total Amount (TSh)', 'Payment Method', 'Delivery Address']),
       '',
       section('PROCUREMENT TRANSACTIONS', orders.map((order) => ({
-        'Order ID': order.id, Supplier: order.supplier, 'Quantity (kg)': order.quantity,
+        Supplier: order.supplier, 'Quantity (kg)': order.quantity,
         'Price per kg (TSh)': order.price_per_kg, 'Transport Cost (TSh)': order.transport_cost,
-        'Total Cost (TSh)': order.total_cost, 'Delivery Date': order.delivery_date, 'Created At': order.created_at,
-      })), ['Order ID', 'Supplier', 'Quantity (kg)', 'Price per kg (TSh)', 'Transport Cost (TSh)', 'Total Cost (TSh)', 'Delivery Date', 'Created At']),
+        'Total Cost (TSh)': order.total_cost, 'Delivery Date': formatReportDate(order.delivery_date),
+      })), ['Supplier', 'Quantity (kg)', 'Price per kg (TSh)', 'Transport Cost (TSh)', 'Total Cost (TSh)', 'Delivery Date']),
       '',
       section('EXPENSE TRANSACTIONS', expenseRows.map((expense) => ({
-        'Expense ID': expense.id, Date: expense.date, Category: expense.category, 'Quantity / Units': expense.unit_value,
+        Date: formatReportDate(expense.date), Category: expense.category, 'Quantity / Units': expense.unit_value,
         'Unit Cost (TSh)': expense.unit_cost, 'Sack Size (kg)': expense.sack_size, 'Amount (TSh)': expense.amount,
-        'Paid By': expense.paid_by, Method: expense.method, Notes: expense.notes, 'Created At': expense.created_at,
-      })), ['Expense ID', 'Date', 'Category', 'Quantity / Units', 'Unit Cost (TSh)', 'Sack Size (kg)', 'Amount (TSh)', 'Paid By', 'Method', 'Notes', 'Created At']),
+        'Paid By': expense.paid_by, Method: expense.method, Notes: expense.notes,
+      })), ['Date', 'Category', 'Quantity / Units', 'Unit Cost (TSh)', 'Sack Size (kg)', 'Amount (TSh)', 'Paid By', 'Method', 'Notes']),
       '',
-      section('TOP CUSTOMERS REVIEW', topCustomers.map((customer) => ({ Customer: customer.name, Orders: customer.count, 'Total Spent (TSh)': customer.total })), ['Customer', 'Orders', 'Total Spent (TSh)']),
+      section('SACK PRODUCTION VS SALES', sackBalances.map((sack) => ({
+        'Sack Size': `${sack.size} kg`, Produced: sack.produced, Sold: sack.sold, Remaining: sack.remaining,
+      })), ['Sack Size', 'Produced', 'Sold', 'Remaining']),
       '',
       section('SUPPLIER REVIEW', supplierStats.map((supplier) => ({ Supplier: supplier.name, Orders: supplier.orders, 'Total Quantity (kg)': supplier.totalQuantity, 'Total Cost (TSh)': supplier.totalCost })), ['Supplier', 'Orders', 'Total Quantity (kg)', 'Total Cost (TSh)']),
       '',
@@ -467,6 +481,23 @@ export class ReportsService {
     return {
       filename: `comprehensive_report_${new Date().toISOString().split('T')[0]}.csv`,
       csv,
+    };
+  }
+
+  /** Downloads a full archive, then permanently clears this user's operations. */
+  async archiveAndReset(userId: string) {
+    const archive = await this.generateComprehensiveReport(userId);
+
+    await this.db.transaction(async (tx) => {
+      await tx.delete(sales).where(eq(sales.user_id, userId));
+      await tx.delete(expenses).where(eq(expenses.user_id, userId));
+      await tx.delete(productionBatches).where(eq(productionBatches.user_id, userId));
+      await tx.delete(procurementOrders).where(eq(procurementOrders.user_id, userId));
+    });
+
+    return {
+      filename: `maize_inventory_archive_${new Date().toISOString().slice(0, 10)}.csv`,
+      csv: archive.csv,
     };
   }
 }

@@ -35,4 +35,12 @@ export class ReportsController {
     res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
     res.send(csv);
   }
+
+  @Post('archive-and-reset')
+  async archiveAndReset(@Req() req: AuthenticatedRequest, @Res() res: Response) {
+    const { filename, csv } = await this.reportsService.archiveAndReset(req.user.id);
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(csv);
+  }
 }
