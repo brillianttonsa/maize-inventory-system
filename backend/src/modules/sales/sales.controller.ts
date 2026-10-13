@@ -6,12 +6,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { SalesService } from './sales.service';
 import { CreateSaleDto } from './dto/create-sale.dto';
 import { UpdateSaleDto } from './dto/update-sale.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
   type AuthenticatedRequest,
   JwtAuthGuard,
@@ -23,8 +25,11 @@ export class SalesController {
   constructor(private readonly salesService: SalesService) {}
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    return this.salesService.findAll(req.user.id);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.salesService.findAll(req.user.id, pagination);
   }
 
   @Post()

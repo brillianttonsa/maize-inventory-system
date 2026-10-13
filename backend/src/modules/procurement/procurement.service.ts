@@ -1,7 +1,12 @@
 import { Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { procurementOrders } from '../../db/schema';
+import {
+  getPagination,
+  type PaginatedResult,
+  type PaginationQueryDto,
+} from '../../common/dto/pagination-query.dto';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
 import { UpdateProcurementDto } from './dto/update-procurement.dto';
 
@@ -9,12 +14,41 @@ import { UpdateProcurementDto } from './dto/update-procurement.dto';
 export class ProcurementService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
 
-  findAll(userId: string) {
-    // old app ordered by numeric id; ids are uuids now so we order by created_at instead
-    return this.db.query.procurementOrders.findMany({
-      where: eq(procurementOrders.user_id, userId),
-      orderBy: asc(procurementOrders.created_at),
-    });
+  async findAll(
+    userId: string,
+    paginationQuery: PaginationQueryDto = {},
+  ) {
+    const where = eq(procurementOrders.user_id, userId);
+    const pagination = getPagination(paginationQuery);
+    if (!pagination) {
+      // old app ordered by numeric id; ids are uuids now so we order by created_at instead
+      return this.db.query.procurementOrders.findMany({
+        where,
+        orderBy: asc(procurementOrders.created_at),
+      });
+    }
+
+    const [items, [{ total }]] = await Promise.all([
+      this.db.query.procurementOrders.findMany({
+        where,
+        orderBy: asc(procurementOrders.created_at),
+        limit: pagination.limit,
+        offset: pagination.offset,
+      }),
+      this.db
+        .select({ total: count() })
+        .from(procurementOrders)
+        .where(where),
+    ]);
+
+    const result: PaginatedResult<(typeof items)[number]> = {
+      items,
+      total,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: Math.ceil(total / pagination.limit),
+    };
+    return result;
   }
 
   async create(userId: string, dto: CreateProcurementDto) {

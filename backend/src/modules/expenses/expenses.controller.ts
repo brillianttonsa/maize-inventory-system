@@ -6,12 +6,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ExpensesService } from './expenses.service';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
   type AuthenticatedRequest,
   JwtAuthGuard,
@@ -23,8 +25,11 @@ export class ExpensesController {
   constructor(private readonly expensesService: ExpensesService) {}
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    return this.expensesService.findAll(req.user.id);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.expensesService.findAll(req.user.id, pagination);
   }
 
   @Get(':id')

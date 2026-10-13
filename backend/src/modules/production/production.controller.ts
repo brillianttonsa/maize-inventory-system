@@ -6,12 +6,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ProductionService } from './production.service';
 import { CreateProductionDto } from './dto/create-production.dto';
 import { UpdateProductionDto } from './dto/update-production.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
   type AuthenticatedRequest,
   JwtAuthGuard,
@@ -23,8 +25,11 @@ export class ProductionController {
   constructor(private readonly productionService: ProductionService) {}
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    return this.productionService.findAll(req.user.id);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.productionService.findAll(req.user.id, pagination);
   }
 
   @Post()

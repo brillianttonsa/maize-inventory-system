@@ -1,7 +1,12 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { productionBatches } from '../../db/schema';
+import {
+  getPagination,
+  type PaginatedResult,
+  type PaginationQueryDto,
+} from '../../common/dto/pagination-query.dto';
 import { CreateProductionDto } from './dto/create-production.dto';
 import { UpdateProductionDto } from './dto/update-production.dto';
 
@@ -12,12 +17,41 @@ const DEBE_PER_GUNIA = 7;
 export class ProductionService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
 
-  findAll(userId: string) {
-    // old app ordered by numeric id; ids are uuids now so we order by created_at instead
-    return this.db.query.productionBatches.findMany({
-      where: eq(productionBatches.user_id, userId),
-      orderBy: asc(productionBatches.created_at),
-    });
+  async findAll(
+    userId: string,
+    paginationQuery: PaginationQueryDto = {},
+  ) {
+    const where = eq(productionBatches.user_id, userId);
+    const pagination = getPagination(paginationQuery);
+    if (!pagination) {
+      // old app ordered by numeric id; ids are uuids now so we order by created_at instead
+      return this.db.query.productionBatches.findMany({
+        where,
+        orderBy: asc(productionBatches.created_at),
+      });
+    }
+
+    const [items, [{ total }]] = await Promise.all([
+      this.db.query.productionBatches.findMany({
+        where,
+        orderBy: asc(productionBatches.created_at),
+        limit: pagination.limit,
+        offset: pagination.offset,
+      }),
+      this.db
+        .select({ total: count() })
+        .from(productionBatches)
+        .where(where),
+    ]);
+
+    const result: PaginatedResult<(typeof items)[number]> = {
+      items,
+      total,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: Math.ceil(total / pagination.limit),
+    };
+    return result;
   }
 
   async create(userId: string, dto: CreateProductionDto) {

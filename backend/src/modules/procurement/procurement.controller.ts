@@ -6,12 +6,14 @@ import {
   Param,
   Post,
   Put,
+  Query,
   Req,
   UseGuards,
 } from '@nestjs/common';
 import { ProcurementService } from './procurement.service';
 import { CreateProcurementDto } from './dto/create-procurement.dto';
 import { UpdateProcurementDto } from './dto/update-procurement.dto';
+import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
 import {
   type AuthenticatedRequest,
   JwtAuthGuard,
@@ -23,8 +25,11 @@ export class ProcurementController {
   constructor(private readonly procurementService: ProcurementService) {}
 
   @Get()
-  findAll(@Req() req: AuthenticatedRequest) {
-    return this.procurementService.findAll(req.user.id);
+  findAll(
+    @Req() req: AuthenticatedRequest,
+    @Query() pagination: PaginationQueryDto,
+  ) {
+    return this.procurementService.findAll(req.user.id, pagination);
   }
 
   @Post()

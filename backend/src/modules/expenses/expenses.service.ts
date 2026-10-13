@@ -1,7 +1,12 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, eq } from 'drizzle-orm';
+import { and, asc, count, eq } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { expenses } from '../../db/schema';
+import {
+  getPagination,
+  type PaginatedResult,
+  type PaginationQueryDto,
+} from '../../common/dto/pagination-query.dto';
 import { CreateExpenseDto } from './dto/create-expense.dto';
 import { UpdateExpenseDto } from './dto/update-expense.dto';
 
@@ -9,11 +14,37 @@ import { UpdateExpenseDto } from './dto/update-expense.dto';
 export class ExpensesService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
 
-  findAll(userId: string) {
-    return this.db.query.expenses.findMany({
-      where: eq(expenses.user_id, userId),
-      orderBy: asc(expenses.date),
-    });
+  async findAll(
+    userId: string,
+    paginationQuery: PaginationQueryDto = {},
+  ) {
+    const where = eq(expenses.user_id, userId);
+    const pagination = getPagination(paginationQuery);
+    if (!pagination) {
+      return this.db.query.expenses.findMany({
+        where,
+        orderBy: asc(expenses.date),
+      });
+    }
+
+    const [items, [{ total }]] = await Promise.all([
+      this.db.query.expenses.findMany({
+        where,
+        orderBy: asc(expenses.date),
+        limit: pagination.limit,
+        offset: pagination.offset,
+      }),
+      this.db.select({ total: count() }).from(expenses).where(where),
+    ]);
+
+    const result: PaginatedResult<(typeof items)[number]> = {
+      items,
+      total,
+      page: pagination.page,
+      limit: pagination.limit,
+      totalPages: Math.ceil(total / pagination.limit),
+    };
+    return result;
   }
 
   async findOne(id: string, userId: string) {
