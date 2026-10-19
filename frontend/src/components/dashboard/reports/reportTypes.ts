@@ -1,5 +1,5 @@
 import { Factory, Package, DollarSign, TrendingUp, type LucideIcon } from 'lucide-react';
-import type { ReportType } from '../../../../../maize-inventory-system/frontend/src/types';
+import type { ReportType } from '../../../types';
 
 export interface ReportTypeDef {
   id: number;

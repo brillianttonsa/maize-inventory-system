@@ -1,4 +1,4 @@
-import type { Expense, InventoryMovement, ProcurementOrder, ProductionBatch, Sale } from '../../../../../maize-inventory-system/frontend/src/types';
+import type { Expense, InventoryMovement, ProcurementOrder, ProductionBatch, Sale } from '../../../types';
 
 export interface CurrentStocks {
   maize: number;
