@@ -5,6 +5,7 @@ import {
   useEffect,
   type ReactNode,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import type { User } from '../types/website';
 
 interface AuthContextValue {
@@ -27,6 +28,7 @@ function useAuth(): AuthContextValue {
 }
 
 function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
@@ -59,6 +61,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = (newToken: string, user: User) => {
+    queryClient.clear();
     localStorage.setItem('token', newToken);
     localStorage.setItem('user', JSON.stringify(user));
     setToken(newToken);
@@ -66,6 +69,7 @@ function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
+    queryClient.clear();
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     setToken(null);
