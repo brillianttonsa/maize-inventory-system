@@ -1,5 +1,6 @@
 import api from './api';
 import type { ProcurementOrder } from '../types';
+import type { PaginatedResponse } from './salesService';
 
 export interface ProcurementPayload {
   supplier: string;
@@ -13,6 +14,10 @@ export interface ProcurementPayload {
 export const procurementService = {
   getAll: async (): Promise<ProcurementOrder[]> =>
     (await api.get<ProcurementOrder[]>('/procurement')).data,
+  getPage: async (page: number, limit: number): Promise<PaginatedResponse<ProcurementOrder>> =>
+    (await api.get<PaginatedResponse<ProcurementOrder>>('/procurement', {
+      params: { page, limit },
+    })).data,
   create: async (payload: ProcurementPayload): Promise<ProcurementOrder> =>
     (await api.post<ProcurementOrder>('/procurement', payload)).data,
   update: async (id: string, payload: Partial<ProcurementPayload>): Promise<ProcurementOrder> =>

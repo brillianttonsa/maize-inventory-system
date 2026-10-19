@@ -1,6 +1,14 @@
 import api from './api';
 import type { Sale } from '../types';
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 export interface SalePayload {
   customer_name: string;
   customer_contact: string;
@@ -20,6 +28,8 @@ export interface SalePayload {
 
 export const salesService = {
   getAll: async (): Promise<Sale[]> => (await api.get<Sale[]>('/sales')).data,
+  getPage: async (page: number, limit: number): Promise<PaginatedResponse<Sale>> =>
+    (await api.get<PaginatedResponse<Sale>>('/sales', { params: { page, limit } })).data,
   create: async (payload: SalePayload): Promise<Sale> =>
     (await api.post<Sale>('/sales', payload)).data,
   update: async (id: string, payload: Partial<SalePayload>): Promise<Sale> =>
