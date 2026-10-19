@@ -1,121 +1,141 @@
-# Maize-Inventory-System Hub Backend
+# Maize Inventory System API
 
-Backend API for **Maize-Inventory-System** — a B2B SaaS platform for wholesale maize/flour distributors in Tanzania. It tracks the full mill-to-market flow: raw maize procurement, milling production batches, sales to wholesale customers, operating expenses, stock movements, and business reports — plus subscription billing for the platform itself.
+The backend is a NestJS API for managing maize procurement, production, sales, expenses, stock movements, user settings, and reports. It uses PostgreSQL through Drizzle ORM.
 
-Originally built as an Express + raw SQL app; this is the migrated version on **NestJS + Drizzle ORM + PostgreSQL**.
+For the complete application overview and frontend setup, see the [repository README](../../README.md).
 
----
+## Stack
 
-## Tech stack
-
-- **Framework:** NestJS 10
-- **ORM:** Drizzle ORM (`drizzle-orm` 0.45+, `node-postgres` driver)
-- **Database:** PostgreSQL
-- **Auth:** JWT (`jsonwebtoken`) + `bcrypt` password hashing
-- **Validation:** `class-validator` / `class-transformer` via Nest's `ValidationPipe`
-- **Language:** TypeScript
-
-## Domain model
-
-| Module | Purpose |
-|---|---|
-| `auth` | Signup, login, forgot/reset password |
-| `procurement` | Recording maize purchases from suppliers |
-| `production` | Milling batches: maize in → flour + bran out, resource usage |
-| `sales` | Sales of flour/bran to wholesale customers |
-| `expenses` | Operating costs (sacks, electricity, transport, etc.) |
-| `inventory` | Computed stock movements and recent-activity feed, derived from the above |
-| `reports` | CSV exports per domain + a comprehensive JSON business report |
-| `subscriptions` | Platform billing: plans, trials, payments (new — not in the original app) |
-| `contacts` | Public contact form submissions |
-| `settings` | User profile and password management |
-
-
-
----
-
-## Project structure
-
-```
-.
-├── main.ts                  # entrypoint, global prefix + validation pipe
-├── app.module.ts            # wires every feature module together
-├── config/
-│   └── env.ts                # typed env loader, throws on missing required vars
-├── db/
-│   ├── db.module.ts          # global Drizzle connection provider (DB_PROVIDER)
-│   └── schema/index.ts       # Drizzle table definitions
-└── modules/
-    ├── auth/
-    ├── procurement/
-    ├── production/
-    ├── sales/
-    ├── expenses/
-    ├── inventory/
-    ├── reports/
-    ├── subscriptions/
-    ├── contacts/
-    └── settings/
-```
-
-Each feature module follows the same shape: `*.module.ts`, `*.controller.ts`, `*.service.ts`, `dto/*.dto.ts`.
-
----
-
-## Getting started
-
-### 1. Prerequisites
 - Node.js 20+
-- A PostgreSQL database (local, Docker, or hosted — see deployment guide below)
+- NestJS 11 and TypeScript
+- PostgreSQL
+- Drizzle ORM with the `node-postgres` driver
+- JWT authentication
+- `class-validator` and `class-transformer` request validation
 
-### 2. Install dependencies
-```bash
-npm install
+## Setup
+
+Run the following commands from the `backend` directory:
+
+```powershell
+npm ci
 ```
 
-### 3. Configure environment
-Create a `.env` file in the project root:
+Create `backend/.env`:
+
 ```env
 PORT=3000
-DATABASE_URL=postgres://user:password@localhost:5432/staples_hub
-JWT_ACCESS_SECRET=replace-with-a-long-random-string
+DATABASE_URL=postgresql://<user>:<password>@localhost:5432/<database>
+JWT_ACCESS_SECRET=<long-random-secret>
 JWT_ACCESS_EXPIRES_IN=7d
 CLIENT_URL=http://localhost:5173
 NODE_ENV=development
 ```
-`config/env.ts` will throw on startup if `DATABASE_URL`, `JWT_ACCESS_SECRET`, or `JWT_ACCESS_EXPIRES_IN` are missing.
 
-### 4. Apply the database schema
-This project doesn't yet include committed migrations — push the Drizzle schema directly for local development:
-```bash
-npx drizzle-kit push
-```
-(Add a `drizzle.config.ts` pointing at `db/schema/index.ts` if you don't already have one — see the deployment guide for a production-safe alternative using generated migrations.)
+`DATABASE_URL`, `JWT_ACCESS_SECRET`, and `JWT_ACCESS_EXPIRES_IN` are required. `PORT`, `CLIENT_URL`, and `NODE_ENV` have defaults.
 
-### 5. Run it
-```bash
-npm run start:dev   # watch mode
-npm run build && npm run start:prod   # production build
+Apply the committed migrations:
+
+```powershell
+npm run db:migrate
 ```
 
-The API will be available at `http://localhost:3000/api/...`.
+Start in watch mode:
 
----
-
-## Auth model
-
-Every protected route expects:
+```powershell
+npm run start:dev
 ```
-Authorization: Bearer <jwt>
+
+The API listens on the configured port and uses the `/api/v4` global prefix. With the default port, the API base URL is `http://localhost:3000/api/v4`.
+
+## Database commands
+
+Run these from `backend`:
+
+| Command | Purpose |
+| --- | --- |
+| `npm run db:migrate` | Apply committed Drizzle migrations |
+| `npm run db:generate` | Generate migrations from schema changes |
+| `npm run db:push` | Push the schema directly to the configured database; useful for local development |
+| `npm run db:studio` | Open Drizzle Studio |
+
+Review and commit generated migrations before using schema changes in production. Back up production data before applying migrations.
+
+## API documentation
+
+Start the API and open:
+
+- Swagger UI: `http://localhost:3000/api/v4/docs`
+- OpenAPI document: `http://localhost:3000/api/v4/openapi.json`
+
+Protected endpoints use a JWT bearer token. Obtain a token through `POST /api/v4/auth/login`, then use the **Authorize** control in Swagger UI or send an `Authorization: Bearer <token>` header. Swagger UI assets are loaded from a CDN, so the interactive page requires internet access; the JSON document is served by the API itself.
+
+## Main endpoints
+
+All paths below are relative to `/api/v4`.
+
+| Path | Methods | Purpose |
+| --- | --- | --- |
+| `/auth/signup`, `/auth/login` | `POST` | Create an account and log in |
+| `/auth/forgot-password`, `/auth/reset-password/{token}` | `POST` | Password recovery |
+| `/sales`, `/sales/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Sales records |
+| `/expenses`, `/expenses/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Expense records |
+| `/expenses/summary` | `GET` | All-time expense totals grouped by category |
+| `/procurement`, `/procurement/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Procurement orders |
+| `/production`, `/production/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Production batches |
+| `/production/chart-data` | `GET` | Daily production totals for a date range |
+| `/inventory-movements` | `GET` | Inventory history, filters, and running balances |
+| `/recent-activities` | `GET` | Six most recent inventory activities |
+| `/dashboard-summary` | `GET` | Aggregated dashboard totals and current stock |
+| `/settings/profile`, `/settings/password` | `PUT` | Update profile and password |
+| `/reports/generate`, `/reports/comprehensive`, `/reports/archive-and-reset` | `POST`, `GET`, `POST` | Generate or download reports |
+| `/contact` | `POST` | Submit a public contact message |
+
+The OpenAPI document is the source of truth for request fields, response descriptions, and authentication requirements.
+
+## Pagination
+
+The sales, expenses, procurement, production, and inventory movement list endpoints accept `page` and `limit` query parameters. Supplying either activates pagination; defaults are `page=1` and `limit=20`. The maximum `limit` is 100.
+
+Paginated list responses use this structure:
+
+```json
+{
+  "items": [],
+  "total": 0,
+  "page": 1,
+  "limit": 20,
+  "totalPages": 0
+}
 ```
-Get a token from `POST /api/auth/login`. Tokens are signed with `JWT_ACCESS_SECRET` and expire after `JWT_ACCESS_EXPIRES_IN`. There's no refresh-token flow yet — when the token expires, the user logs in again.
 
-There is currently **no role-based access control** — every guarded route just checks "is this a valid logged-in user," including the subscription-plan admin endpoints (`POST/PATCH /subscriptions/plans`). Add a roles guard before exposing those publicly.
+List requests that omit both parameters keep the legacy array response for compatibility. Inventory movement requests can also specify `item` and `source`; the database applies the filters and computes each movement's running balance before returning the requested page. Exports may intentionally request all matching records.
 
----
+Production chart data accepts `from` and `to` dates in `YYYY-MM-DD` format. The dashboard summary accepts a `date` in that format to calculate sales revenue for that day.
 
-## Known limitations (read before production)
+## Scripts
 
-- Email is **console-logged, not sent** (password reset, contact form) — no email provider is wired up.
-- **No automated tests** currently ship with the migrated modules.
-- **Subscription logic not complete**
+| Command | Purpose |
+| --- | --- |
+| `npm run start:dev` | Run the API in watch mode |
+| `npm run build` | Compile the backend |
+| `npm run start:prod` | Run the compiled backend |
+| `npm test -- --runInBand` | Run backend unit tests |
+| `npm run test:cov` | Run tests with coverage |
+| `npm run lint` | Run ESLint (the configured script applies fixes) |
+
+## Modules
+
+Feature code is under `src/modules/`. The app currently wires these modules:
+
+- `auth`
+- `contacts`
+- `expenses`
+- `inventory`
+- `procurement`
+- `production`
+- `reports`
+- `sales`
+- `settings`
+
+The database connection and Drizzle schemas are under `src/db/`; migrations are in `drizzle/`. Focused tests are colocated with source files as `*.spec.ts`.
