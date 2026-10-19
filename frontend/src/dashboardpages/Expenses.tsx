@@ -27,6 +27,7 @@ export default function Expenses() {
     paginate,
     indexOfFirst,
     loading,
+    totalRecords,
   } = useExpensesLogic();
 
   if (loading) return <div className="p-6 text-gray-500">Loading expenses...</div>;
@@ -67,6 +68,7 @@ export default function Expenses() {
         handleEdit={handleEdit}
         currentPage={currentPage}
         loading={loading}
+        totalRecords={totalRecords}
         paginate={paginate}
         indexOfFirst={indexOfFirst}
         totalPages={totalPages}

@@ -1,8 +1,7 @@
-import { useState, useEffect } from 'react';
-import { getProductionStats, getRevenueStats } from '../services/dashboardServices';
-import { calculateCurrentStocksFromMovements } from '../components/dashboard/inventory/inventoryUtils';
+import { useQuery } from '@tanstack/react-query';
+import { getTodayDate } from '../components/utils/todaydate';
 import { inventoryService } from '../services/inventoryService';
-import type { InventoryMovement } from '../types';
+import { queryKeys } from '../services/queryKeys';
 
 export interface DashboardStats {
   totalMaize: number;
@@ -13,44 +12,20 @@ export interface DashboardStats {
 }
 
 export function useDashboardLogic() {
-  const [stats, setStats] = useState<DashboardStats>({
+  const summaryQuery = useQuery({
+    queryKey: queryKeys.dashboard.summary(getTodayDate()),
+    queryFn: () => inventoryService.getDashboardSummary(getTodayDate()),
+  });
+  const stats = summaryQuery.data?.stats ?? {
     totalMaize: 0,
     totalFlour: 0,
     totalBran: 0,
     efficiency: 0,
     totalRevenue: 0,
-  });
+  };
+  const stocks = summaryQuery.data?.stocks ?? null;
+  const loading = summaryQuery.isPending;
+  const error = summaryQuery.isError;
 
-  const [movements, setMovements] = useState<InventoryMovement[]>([]);
-  const [stocks, setStocks] = useState<Record<string, number> | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    async function fetchData() {
-      setLoading(true);
-      try {
-        const data = await inventoryService.getAllMovements();
-        setMovements(data);
-
-        const currentStocks = calculateCurrentStocksFromMovements(data);
-        setStocks(currentStocks);
-
-        const production = await getProductionStats();
-        const revenue = await getRevenueStats();
-
-        setStats({
-          ...production,
-          totalRevenue: revenue.totalRevenue,
-        });
-      } catch (error) {
-        console.error('Error loading dashboard data:', error);
-      } finally {
-        setLoading(false);
-      }
-    }
-
-    fetchData();
-  }, []);
-
-  return { stats, stocks, movements, loading };
+  return { stats, stocks, loading, error };
 }

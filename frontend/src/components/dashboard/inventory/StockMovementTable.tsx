@@ -2,15 +2,12 @@ import type { ChangeEvent } from 'react';
 import ExportCSVButton from '../common/ExportCSVButton';
 import { INVENTORY_HEADERS, inventoryDataMapper } from '../../data/CSVData';
 import useStockMovement from '../../../hooks/useStockMovementLogic';
-import type { InventoryMovement } from '../../../../../maize-inventory-system/frontend/src/types';
+import { inventoryService } from '../../../services/inventoryService';
+import type { InventoryMovement } from '../../../types';
 
 const ROWS_PER_PAGE = 7;
 
-interface StockMovementTableProps {
-  movements: InventoryMovement[];
-}
-
-export default function StockMovementTable({ movements }: StockMovementTableProps) {
+export default function StockMovementTable() {
   const {
     currentPage,
     totalPages,
@@ -21,7 +18,25 @@ export default function StockMovementTable({ movements }: StockMovementTableProp
     handlePrev,
     handleNext,
     handleFilterChange,
-  } = useStockMovement(movements, ROWS_PER_PAGE);
+    totalRecords,
+    loading,
+    error,
+  } = useStockMovement(ROWS_PER_PAGE);
+
+  const fetchFilteredMovements = async (): Promise<InventoryMovement[]> => {
+    const allMovements = await inventoryService.getAllMovements();
+    return allMovements.filter((movement) => {
+      const itemMatch =
+        filterItem === 'All' ||
+        (filterItem === 'Bran'
+          ? movement.item.toLowerCase().startsWith('bran')
+          : movement.item.toLowerCase() === filterItem.toLowerCase());
+      const sourceMatch =
+        filterSource === 'All' ||
+        movement.source.toLowerCase() === filterSource.toLowerCase();
+      return itemMatch && sourceMatch;
+    });
+  };
 
   return (
     <section className="rounded-xl p-6 shadow-xl bg-white border border-yellow-200">
@@ -62,7 +77,8 @@ export default function StockMovementTable({ movements }: StockMovementTableProp
           filename="inventory_data"
           headers={INVENTORY_HEADERS}
           dataMapper={inventoryDataMapper}
-          disabled={filteredMovements.length === 0}
+          fetchData={fetchFilteredMovements}
+          disabled={totalRecords === 0}
         />
       </div>
 
@@ -83,7 +99,19 @@ export default function StockMovementTable({ movements }: StockMovementTableProp
             </tr>
           </thead>
           <tbody className="bg-white divide-y divide-gray-100">
-            {paginatedMovements.length === 0 ? (
+            {loading ? (
+              <tr>
+                <td colSpan={8} className="text-center py-4 text-gray-500">
+                  Loading inventory movements...
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan={8} className="text-center py-4 text-red-600" role="alert">
+                  Failed to load inventory movements.
+                </td>
+              </tr>
+            ) : paginatedMovements.length === 0 ? (
               <tr>
                 <td colSpan={8} className="text-center py-4 text-gray-500">
                   No movements available
@@ -91,7 +119,7 @@ export default function StockMovementTable({ movements }: StockMovementTableProp
               </tr>
             ) : (
               paginatedMovements.map((m, index) => (
-                <tr key={index} className="hover:bg-yellow-50/50 transition-colors">
+                <tr key={`${m.date}-${m.source}-${m.item}-${m.remarks}-${index}`} className="hover:bg-yellow-50/50 transition-colors">
                   <td className="px-4 py-3 text-sm font-medium text-gray-700">
                     {(currentPage - 1) * ROWS_PER_PAGE + index + 1}
                   </td>

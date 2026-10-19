@@ -3,7 +3,8 @@ import TableActions from '../common/TableActions';
 import ExportCSVButton from '../common/ExportCSVButton';
 import { PROCUREMENT_HEADERS, procurementDataMapper } from '../../data/CSVData';
 import { tableDiv2Class, tableDivClass, thClass } from '../common/cssCommon';
-import type { ProcurementOrder } from '../../../../../maize-inventory-system/frontend/src/types';
+import type { ProcurementOrder } from '../../../types';
+import { procurementService } from '../../../services/procurementApi';
 
 interface OrdersTableProps {
   orders: ProcurementOrder[];
@@ -15,6 +16,7 @@ interface OrdersTableProps {
   totalPages: number;
   paginate: (page: number) => void;
   loading: boolean;
+  totalRecords: number;
 }
 
 const OrdersTable = ({
@@ -27,6 +29,7 @@ const OrdersTable = ({
   totalPages,
   paginate,
   loading,
+  totalRecords,
 }: OrdersTableProps) => {
   return (
     <div className={tableDivClass}>
@@ -37,7 +40,8 @@ const OrdersTable = ({
           filename="procurement_orders"
           headers={PROCUREMENT_HEADERS}
           dataMapper={procurementDataMapper}
-          disabled={orders.length === 0}
+          fetchData={procurementService.getAll}
+          disabled={totalRecords === 0}
         />
       </div>
 

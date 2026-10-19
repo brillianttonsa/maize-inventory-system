@@ -1,9 +1,17 @@
-import { useState, useEffect, type ChangeEvent, type FormEvent } from 'react';
+import { useState, type ChangeEvent, type FormEvent } from 'react';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import { salesService } from '../services/salesService';
 import { getTodayDate } from '../components/utils/todaydate';
 import { resetForm } from '../components/dashboard/common/ResetForm';
 import { formatData } from '../components/utils/formatDate';
 import type { Sale } from '../types';
+import type { SalePayload } from '../services/salesService';
+import { invalidateRecordQueries, queryKeys } from '../services/queryKeys';
 
 interface SaleFormData {
   customerName: string;
@@ -38,35 +46,44 @@ const initialFormData: SaleFormData = {
 };
 
 export const useSalesLogic = () => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<SaleFormData>(initialFormData);
-  const [sales, setSales] = useState<Sale[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const [loading, setLoading] = useState(true);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const itemsPerPage = 5;
 
-  const fetchSales = async () => {
-    try {
-      setLoading(true);
-      const data = await salesService.getAll();
-      setSales(formatData(data));
-    } catch (error) {
-      console.error(error);
-      setError('Fail searching sales');
-    } finally {
-      setLoading(false);
-    }
-  };
+  const salesQuery = useQuery({
+    queryKey: queryKeys.sales.page(currentPage, itemsPerPage),
+    queryFn: () => salesService.getPage(currentPage, itemsPerPage),
+    placeholderData: keepPreviousData,
+  });
+  const createSaleMutation = useMutation({
+    mutationFn: salesService.create,
+    onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.sales.all),
+  });
+  const updateSaleMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<SalePayload> }) =>
+      salesService.update(id, payload),
+    onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.sales.all),
+  });
+  const deleteSaleMutation = useMutation({
+    mutationFn: salesService.remove,
+    onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.sales.all),
+  });
 
-  useEffect(() => {
-    fetchSales();
-  }, []);
+  const sales = formatData(salesQuery.data?.items ?? []);
+  const totalSales = salesQuery.data?.total ?? 0;
+  const loading = salesQuery.isPending;
+  const saving =
+    createSaleMutation.isPending ||
+    updateSaleMutation.isPending ||
+    deleteSaleMutation.isPending;
+  const error = formError ?? (salesQuery.isError ? 'Failed to load sales records.' : null);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setError(null);
+    setFormError(null);
 
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
@@ -78,7 +95,7 @@ export const useSalesLogic = () => {
 
   const handleSaveOrUpdate = async (e: FormEvent) => {
     e.preventDefault();
-    setSaving(true);
+    setFormError(null);
     const {
       customerName,
       customerContact,
@@ -108,18 +125,19 @@ export const useSalesLogic = () => {
     };
 
     try {
-      const newSale = editId ? await salesService.update(editId, payload) : await salesService.create(payload);
-
-      const data2 = editId ? sales.map((o) => (o.id === editId ? newSale : o)) : [...sales, newSale];
-      setSales(formatData(data2));
-
-      fetchSales();
+      if (editId) {
+        await updateSaleMutation.mutateAsync({ id: editId, payload });
+      } else {
+        await createSaleMutation.mutateAsync(payload);
+      }
+      if (!editId) {
+        const lastPage = Math.max(1, Math.ceil((totalSales + 1) / itemsPerPage));
+        setCurrentPage(lastPage);
+      }
       resetForm({ initialFormData, setFormData, setEditId });
     } catch (error) {
       console.error(error);
-      setError('Sale record fail');
-    } finally {
-      setSaving(false);
+      setFormError('Sale record fail');
     }
   };
 
@@ -144,24 +162,29 @@ export const useSalesLogic = () => {
 
   const handleCancelEdit = () => {
     resetForm({ initialFormData, setFormData, setEditId });
-    setError(null);
+    setFormError(null);
   };
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this sale record?')) {
       try {
-        await salesService.remove(id);
-        fetchSales();
+        await deleteSaleMutation.mutateAsync(id);
+        const nextTotal = Math.max(0, totalSales - 1);
+        const nextPage = Math.min(
+          currentPage,
+          Math.max(1, Math.ceil(nextTotal / itemsPerPage)),
+        );
+        setCurrentPage(nextPage);
       } catch (error) {
         console.error('Error deleting sale:', error);
+        setFormError('Error deleting sale.');
       }
     }
   };
 
-  const indexOfLast = currentPage * itemsPerPage;
-  const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentSales = sales.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(sales.length / itemsPerPage);
+  const indexOfFirst = (currentPage - 1) * itemsPerPage;
+  const currentSales = sales;
+  const totalPages = Math.ceil(totalSales / itemsPerPage);
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
   return {
@@ -182,5 +205,7 @@ export const useSalesLogic = () => {
     handleDelete,
     handleCancelEdit,
     paginate,
+    updating: salesQuery.isFetching && !salesQuery.isPending,
+    loadError: salesQuery.isError ? 'Unable to load sales records. Please try again.' : null,
   };
 };

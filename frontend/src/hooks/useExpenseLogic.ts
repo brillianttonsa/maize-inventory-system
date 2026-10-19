@@ -1,4 +1,10 @@
-import { useState, useEffect, useMemo, type ChangeEvent, type FormEvent } from 'react';
+import { useState, useMemo, type ChangeEvent, type FormEvent } from 'react';
+import {
+  keepPreviousData,
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query';
 import type { LucideIcon } from 'lucide-react';
 import { expenseService } from '../services/expenseService';
 import { CATEGORIES, CATEGORY_COLORS, OVERVIEW_ICONS } from '../components/dashboard/expenses/constants';
@@ -7,6 +13,8 @@ import { resetForm } from '../components/dashboard/common/ResetForm';
 import { checkingValidityCountOfNote, wordCounts } from '../components/dashboard/common/NotesMaxCount';
 import { formatData } from '../components/utils/formatDate';
 import type { Expense } from '../types';
+import type { ExpensePayload } from '../services/expenseService';
+import { invalidateRecordQueries, queryKeys } from '../services/queryKeys';
 
 interface ExpenseFormData {
   date: string;
@@ -49,47 +57,49 @@ export interface OverviewCardData {
 }
 
 export const useExpensesLogic = () => {
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState<ExpenseFormData>(initialFormData);
-  const [expenses, setExpenses] = useState<Expense[]>([]);
   const [editId, setEditId] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [saving, setSaving] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [filterCategory, setFilterCategory] = useState('All');
   const itemsPerPage = 5;
 
-  const fetchExpenses = async () => {
-    try {
-      const data = await expenseService.getAll();
-      const formatted = formatData(data);
-      setExpenses(formatted);
-    } catch (err) {
-      console.error(err);
-      setError('Failed to fetch expenses');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    fetchExpenses();
-  }, []);
-
-  const filteredExpenses = useMemo(() => {
-    const relevantExpenses =
-      filterCategory === 'All' ? expenses : expenses.filter((exp) => exp.category === filterCategory);
-
-    return [...relevantExpenses].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [expenses, filterCategory]);
+  const expensesQuery = useQuery({
+    queryKey: queryKeys.expenses.list(currentPage, itemsPerPage, filterCategory),
+    queryFn: () => expenseService.getPage(currentPage, itemsPerPage, filterCategory),
+    placeholderData: keepPreviousData,
+  });
+  const summaryQuery = useQuery({
+    queryKey: queryKeys.expenses.summary,
+    queryFn: expenseService.getSummary,
+  });
+  const createMutation = useMutation({
+    mutationFn: expenseService.create,
+    onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.expenses.all),
+  });
+  const updateMutation = useMutation({
+    mutationFn: ({ id, payload }: { id: string; payload: Partial<ExpensePayload> }) =>
+      expenseService.update(id, payload),
+    onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.expenses.all),
+  });
+  const deleteMutation = useMutation({
+    mutationFn: expenseService.remove,
+    onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.expenses.all),
+  });
+  const expenses = formatData(expensesQuery.data?.items ?? []);
+  const summary = summaryQuery.data ?? [];
+  const loading = expensesQuery.isPending || summaryQuery.isPending;
+  const saving = createMutation.isPending || updateMutation.isPending || deleteMutation.isPending;
+  const error =
+    formError ??
+    (expensesQuery.isError || summaryQuery.isError ? 'Failed to fetch expenses' : null);
 
   const overviewData = useMemo<OverviewCardData[]>(() => {
-    const totalAllTime = expenses.reduce((sum, exp) => sum + Number(exp.amount), 0);
-
-    const categoryTotals: Record<string, number> = expenses.reduce((acc, exp) => {
-      acc[exp.category] = (acc[exp.category] || 0) + Number(exp.amount);
-      return acc;
-    }, {} as Record<string, number>);
+    const categoryTotals = Object.fromEntries(
+      summary.map((item) => [item.category, Number(item.amount)]),
+    ) as Record<string, number>;
+    const totalAllTime = summary.reduce((sum, item) => sum + Number(item.amount), 0);
 
     const cards: OverviewCardData[] = CATEGORIES.map(({ name }) => ({
       title: name,
@@ -106,29 +116,22 @@ export const useExpensesLogic = () => {
     });
 
     return cards;
-  }, [expenses]);
+  }, [summary]);
 
   const categoryChartData = useMemo(() => {
-    return filteredExpenses
-      .reduce<Array<{ name: string; amount: number; fill: string }>>((acc, exp) => {
-        const existing = acc.find((item) => item.name === exp.category);
-        if (existing) {
-          existing.amount += Number(exp.amount);
-        } else {
-          acc.push({
-            name: exp.category,
-            amount: Number(exp.amount),
-            fill: CATEGORY_COLORS[exp.category],
-          });
-        }
-        return acc;
-      }, [])
+    return summary
+      .filter((item) => filterCategory === 'All' || item.category === filterCategory)
+      .map((item) => ({
+        name: item.category,
+        amount: Number(item.amount),
+        fill: CATEGORY_COLORS[item.category],
+      }))
       .filter((item) => item.amount > 0);
-  }, [filteredExpenses]);
+  }, [summary, filterCategory]);
 
   const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    setError(null);
+    setFormError(null);
 
     if (name === 'notes' && checkingValidityCountOfNote(name, value)) return;
 
@@ -153,8 +156,7 @@ export const useExpensesLogic = () => {
 
   const handleSaveOrUpdate = async (e: FormEvent) => {
     e.preventDefault();
-    setSaving(true);
-    setError(null);
+    setFormError(null);
 
     const { date, category, amount, unitValue, unitCost, sackSize, paidBy, method, notes } = formData;
     const calculatedAmount = ['sacks', 'water'].includes(category.toLowerCase())
@@ -176,22 +178,19 @@ export const useExpensesLogic = () => {
     };
 
     try {
-      const newExpense = editId
-        ? await expenseService.update(editId, payload)
-        : await expenseService.create(payload);
-
-      const data2 = editId
-        ? expenses.map((o) => (o.id === editId ? newExpense : o))
-        : [...expenses, newExpense];
-
-      setExpenses(formatData(data2));
-      fetchExpenses();
+      if (editId) {
+        await updateMutation.mutateAsync({ id: editId, payload });
+      } else {
+        await createMutation.mutateAsync(payload);
+      }
+      if (!editId && filterCategory === 'All') {
+        const lastPage = Math.max(1, Math.ceil(((expensesQuery.data?.total ?? 0) + 1) / itemsPerPage));
+        setCurrentPage(lastPage);
+      }
       resetForm({ initialFormData, setFormData, setEditId });
     } catch (err) {
       console.error(err);
-      setError(`Failed to ${editId ? 'update' : 'save'} expense.`);
-    } finally {
-      setSaving(false);
+      setFormError(`Failed to ${editId ? 'update' : 'save'} expense.`);
     }
   };
 
@@ -212,24 +211,26 @@ export const useExpensesLogic = () => {
 
   const handleCancelEdit = () => {
     resetForm({ initialFormData, setFormData, setEditId });
+    setFormError(null);
   };
 
   const handleDelete = async (id: string) => {
     if (confirm('Are you sure you want to delete this expense record?')) {
       try {
-        await expenseService.remove(id);
-        setExpenses((prev) => prev.filter((o) => o.id !== id));
+        await deleteMutation.mutateAsync(id);
+        const nextTotal = Math.max(0, (expensesQuery.data?.total ?? 0) - 1);
+        setCurrentPage((page) => Math.min(page, Math.max(1, Math.ceil(nextTotal / itemsPerPage))));
       } catch (error) {
         console.error(error);
-        setError('Error in deleting expense');
+        setFormError('Error in deleting expense');
       }
     }
   };
 
   const indexOfLast = currentPage * itemsPerPage;
   const indexOfFirst = indexOfLast - itemsPerPage;
-  const currentExpenses = filteredExpenses.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
+  const currentExpenses = expenses;
+  const totalPages = expensesQuery.data?.totalPages ?? 0;
 
   const paginate = (pageNumber: number) => setCurrentPage(pageNumber);
 
@@ -240,6 +241,7 @@ export const useExpensesLogic = () => {
     saving,
     expenses,
     loading,
+    totalRecords: expensesQuery.data?.total ?? 0,
     currentPage,
     totalPages,
     currentExpenses,
@@ -255,6 +257,9 @@ export const useExpensesLogic = () => {
     handleCancelEdit,
     handleDelete,
     setCurrentPage,
-    setFilterCategory,
+    setFilterCategory: (category: string) => {
+      setFilterCategory(category);
+      setCurrentPage(1);
+    },
   };
 };

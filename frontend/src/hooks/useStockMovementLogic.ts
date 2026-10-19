@@ -1,25 +1,25 @@
-import { useState, useMemo, type ChangeEvent } from 'react';
-import type { InventoryMovement } from '../types';
+import { useState, type ChangeEvent } from 'react';
+import { keepPreviousData, useQuery } from '@tanstack/react-query';
+import { inventoryService } from '../services/inventoryService';
+import { queryKeys } from '../services/queryKeys';
 
-export default function useStockMovement(movements: InventoryMovement[], rowsPerPage = 7) {
+export default function useStockMovement(rowsPerPage = 7) {
   const [currentPage, setCurrentPage] = useState(1);
   const [filterItem, setFilterItem] = useState('All');
   const [filterSource, setFilterSource] = useState('All');
-
-  const filteredMovements = useMemo(() => {
-    return movements.filter((m) => {
-      const itemMatch = filterItem === 'All' || m.item?.toLowerCase() === filterItem.toLowerCase();
-      const sourceMatch =
-        filterSource === 'All' || (m.source || '').toLowerCase() === filterSource.toLowerCase();
-      return itemMatch && sourceMatch;
-    });
-  }, [movements, filterItem, filterSource]);
-
-  const totalPages = Math.ceil(filteredMovements.length / rowsPerPage);
-
-  const paginatedMovements = useMemo(() => {
-    return filteredMovements.slice((currentPage - 1) * rowsPerPage, currentPage * rowsPerPage);
-  }, [filteredMovements, currentPage, rowsPerPage]);
+  const movementQuery = useQuery({
+    queryKey: queryKeys.inventory.movementPage(
+      currentPage,
+      rowsPerPage,
+      filterItem,
+      filterSource,
+    ),
+    queryFn: () =>
+      inventoryService.getMovementPage(currentPage, rowsPerPage, filterItem, filterSource),
+    placeholderData: keepPreviousData,
+  });
+  const paginatedMovements = movementQuery.data?.items ?? [];
+  const totalPages = movementQuery.data?.totalPages ?? 0;
 
   const handlePrev = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
@@ -35,8 +35,11 @@ export default function useStockMovement(movements: InventoryMovement[], rowsPer
     totalPages,
     filterItem,
     filterSource,
-    filteredMovements,
+    filteredMovements: paginatedMovements,
     paginatedMovements,
+    totalRecords: movementQuery.data?.total ?? 0,
+    loading: movementQuery.isPending,
+    error: movementQuery.isError,
     handlePrev,
     handleNext,
     handleFilterChange,

@@ -15,6 +15,8 @@ const SalesDashboard = () => {
     currentSales,
     totalPages,
     indexOfFirst,
+    updating,
+    loadError,
     handleChange,
     handleSaveOrUpdate,
     handleEdit,
@@ -49,6 +51,8 @@ const SalesDashboard = () => {
           totalPages={totalPages}
           paginate={paginate}
           loading={loading}
+          updating={updating}
+          loadError={loadError}
         />
       </div>
     </div>

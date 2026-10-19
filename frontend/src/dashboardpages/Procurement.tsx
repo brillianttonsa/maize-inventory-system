@@ -21,6 +21,7 @@ const ProcurementDashboard = () => {
     paginate,
     totalCost,
     loading,
+    totalRecords,
   } = useProcurementLogic();
 
   return (
@@ -49,6 +50,7 @@ const ProcurementDashboard = () => {
           totalPages={totalPages}
           paginate={paginate}
           loading={loading}
+          totalRecords={totalRecords}
         />
       </div>
     </div>

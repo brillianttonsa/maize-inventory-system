@@ -3,7 +3,8 @@ import TablePagination from '../common/TablePagination';
 import TableActions from '../common/TableActions';
 import { PRODUCTION_HEADERS, productionDataMapper } from '../../data/CSVData';
 import { tableDiv2Class, tableDivClass, thClass } from '../common/cssCommon';
-import type { ProductionBatch } from '../../../../../maize-inventory-system/frontend/src/types';
+import type { ProductionBatch } from '../../../types';
+import { productionService } from '../../../services/productionApi';
 
 interface ProductionTableProps {
   batches: ProductionBatch[];
@@ -15,6 +16,7 @@ interface ProductionTableProps {
   totalPages: number;
   paginate: (page: number) => void;
   loading: boolean;
+  totalRecords: number;
 }
 
 const ProductionTable = ({
@@ -27,6 +29,7 @@ const ProductionTable = ({
   totalPages,
   paginate,
   loading,
+  totalRecords,
 }: ProductionTableProps) => {
   return (
     <div className={tableDivClass}>
@@ -37,7 +40,8 @@ const ProductionTable = ({
           filename="production_batches"
           headers={PRODUCTION_HEADERS}
           dataMapper={productionDataMapper}
-          disabled={batches.length === 0}
+          fetchData={productionService.getAll}
+          disabled={totalRecords === 0}
         />
       </div>
 

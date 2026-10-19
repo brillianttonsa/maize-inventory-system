@@ -11,6 +11,7 @@ const ProductionDashboard = () => {
     currentBatches,
     totalPages,
     indexOfFirst,
+    totalRecords,
     error,
     saving,
     handleChange,
@@ -47,6 +48,7 @@ const ProductionDashboard = () => {
           totalPages={totalPages}
           paginate={paginate}
           loading={loading}
+          totalRecords={totalRecords}
         />
       </div>
     </div>

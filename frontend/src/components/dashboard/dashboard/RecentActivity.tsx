@@ -2,8 +2,20 @@ import useRecentActivities from '../../../hooks/useRecentActivities';
 import { useNavigate } from 'react-router-dom';
 
 const RecentActivity = () => {
-  const activities = useRecentActivities();
+  const { activities, loading, error } = useRecentActivities();
   const navigate = useNavigate();
+
+  if (loading) {
+    return <div className="p-4 text-center text-gray-500">Loading recent activity...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-4 text-center text-red-600" role="alert">
+        Failed to load recent activity.
+      </div>
+    );
+  }
 
   const getTypeColor = (type: string): string => {
     switch (type) {

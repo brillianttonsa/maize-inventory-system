@@ -5,7 +5,10 @@ import StockMovementTable from '../components/dashboard/inventory/StockMovementT
 import SackProductionBalance from '../components/dashboard/inventory/SackProductionBalance';
 
 export default function Inventory() {
-  const { currentStocks, stockLevels, sackProductionBalances, movements } = useInventoryHook();
+  const { currentStocks, stockLevels, sackProductionBalances, loading, error } = useInventoryHook();
+
+  if (loading) return <div className="p-6 text-gray-500">Loading inventory...</div>;
+  if (error) return <div className="p-6 text-red-600" role="alert">Failed to load inventory data.</div>;
 
   return (
     <div className="p-8 min-h-screen space-y-8 bg-gray-50">
@@ -16,7 +19,7 @@ export default function Inventory() {
 
       <StockCharts stockLevels={stockLevels} />
 
-      <StockMovementTable movements={movements} />
+      <StockMovementTable />
     </div>
   );
 }

@@ -3,7 +3,8 @@ import TablePagination from '../common/TablePagination';
 import TableActions from '../common/TableActions';
 import { SALES_HEADERS, salesDataMapper } from '../../data/CSVData';
 import { tableDiv2Class, tableDivClass, thClass } from '../common/cssCommon';
-import type { Sale } from '../../../../../maize-inventory-system/frontend/src/types';
+import type { Sale } from '../../../types';
+import { salesService } from '../../../services/salesService';
 
 interface SalesTableProps {
   sales: Sale[];
@@ -15,6 +16,8 @@ interface SalesTableProps {
   totalPages: number;
   paginate: (page: number) => void;
   loading: boolean;
+  updating: boolean;
+  loadError: string | null;
 }
 
 const SalesTable = ({
@@ -27,16 +30,22 @@ const SalesTable = ({
   totalPages,
   paginate,
   loading,
+  updating,
+  loadError,
 }: SalesTableProps) => {
   return (
     <div className={tableDivClass}>
       <div className="flex justify-between items-center mb-4">
-        <h3 className="text-xl font-bold text-yellow-700">Sales Records</h3>
+        <div className="flex items-center gap-3">
+          <h3 className="text-xl font-bold text-yellow-700">Sales Records</h3>
+          {updating && <span className="text-xs text-gray-500">Updating...</span>}
+        </div>
         <ExportCSVButton
           data={sales}
           filename="sales_records"
           headers={SALES_HEADERS}
           dataMapper={salesDataMapper}
+          fetchData={salesService.getAll}
           disabled={sales.length === 0}
         />
       </div>
@@ -59,6 +68,12 @@ const SalesTable = ({
               <tr>
                 <td colSpan={8} className="px-4 py-4 text-center text-gray-500">
                   Loading...
+                </td>
+              </tr>
+            ) : loadError ? (
+              <tr>
+                <td colSpan={8} className="px-4 py-4 text-center text-red-600" role="alert">
+                  {loadError}
                 </td>
               </tr>
             ) : sales.length === 0 ? (

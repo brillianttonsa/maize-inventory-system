@@ -5,7 +5,8 @@ import TablePagination from '../common/TablePagination';
 import TableActions from '../common/TableActions';
 import { tableDiv2Class, thClass } from '../common/cssCommon';
 import ExportCSVButton from '../common/ExportCSVButton';
-import type { Expense } from '../../../../../maize-inventory-system/frontend/src/types';
+import type { Expense } from '../../../types';
+import { expenseService } from '../../../services/expenseService';
 
 const getUnitDisplay = (expense: Expense): string => {
   if (!expense.unit_value) return '';
@@ -41,6 +42,7 @@ interface ExpenseTableProps {
   totalPages: number;
   paginate: (page: number) => void;
   loading: boolean;
+  totalRecords: number;
 }
 
 const ExpenseTable = ({
@@ -55,6 +57,7 @@ const ExpenseTable = ({
   totalPages,
   paginate,
   loading,
+  totalRecords,
 }: ExpenseTableProps) => {
   return (
     <section className="mt-8 p-4 sm:p-6 rounded-xl shadow-lg bg-white border border-yellow-200">
@@ -83,7 +86,8 @@ const ExpenseTable = ({
           filename="expenses"
           headers={EXPENSE_HEADERS}
           dataMapper={expenseDataMapper}
-          disabled={expenses.length === 0}
+          fetchData={expenseService.getAll}
+          disabled={totalRecords === 0}
         />
       </div>
 
