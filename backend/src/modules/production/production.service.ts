@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, count, eq } from 'drizzle-orm';
+import { and, asc, count, eq, gte, lte, sql } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { productionBatches } from '../../db/schema';
 import {
@@ -16,6 +16,31 @@ const DEBE_PER_GUNIA = 7;
 @Injectable()
 export class ProductionService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
+
+  async getChartData(userId: string, from: string, to: string) {
+    const rows = await this.db
+      .select({
+        date: productionBatches.date,
+        flour: sql<string>`coalesce(sum(${productionBatches.flour_output}), 0)::text`,
+        bran: sql<string>`coalesce(sum(${productionBatches.bran_debe_quantity}), 0)::text`,
+      })
+      .from(productionBatches)
+      .where(
+        and(
+          eq(productionBatches.user_id, userId),
+          gte(productionBatches.date, from),
+          lte(productionBatches.date, to),
+        ),
+      )
+      .groupBy(productionBatches.date)
+      .orderBy(asc(productionBatches.date));
+
+    return rows.map((row) => ({
+      date: row.date,
+      flour: Number(row.flour),
+      bran: Number(row.bran) / DEBE_PER_GUNIA,
+    }));
+  }
 
   async findAll(
     userId: string,
