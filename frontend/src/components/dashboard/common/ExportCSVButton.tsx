@@ -5,6 +5,7 @@ interface ExportCSVButtonProps<T> {
   filename: string;
   headers: string[];
   dataMapper: (item: T, index: number) => (string | number | null | undefined)[];
+  fetchData?: () => Promise<T[]>;
   disabled?: boolean;
 }
 
@@ -13,40 +14,48 @@ function ExportCSVButton<T>({
   filename,
   headers,
   dataMapper,
+  fetchData,
   disabled = false,
 }: ExportCSVButtonProps<T>) {
-  const handleExportCsv = () => {
-    if (!data || data.length === 0) {
-      alert('No data to export!');
-      return;
+  const handleExportCsv = async () => {
+    try {
+      const exportData = fetchData ? await fetchData() : data;
+      if (exportData.length === 0) {
+        alert('No data to export!');
+        return;
+      }
+
+      const csvRows = exportData.map((item, index) => {
+        const row = dataMapper(item, index);
+
+        return row
+          .map((value) => {
+            let strValue = String(value ?? '');
+            strValue = strValue.replace(/"/g, '""');
+
+            if (strValue.includes(',') || strValue.includes('\n') || strValue.includes('"')) {
+              return `"${strValue}"`;
+            }
+            return strValue;
+          })
+          .join(',');
+      });
+
+      const csvContent = [headers.join(','), ...csvRows].join('\n');
+
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.setAttribute('href', url);
+      link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Failed to export CSV:', error);
+      alert('Failed to export data. Please try again.');
     }
-
-    const csvRows = data.map((item, index) => {
-      const row = dataMapper(item, index);
-
-      return row
-        .map((value) => {
-          let strValue = String(value ?? '');
-          strValue = strValue.replace(/"/g, '""');
-
-          if (strValue.includes(',') || strValue.includes('\n') || strValue.includes('"')) {
-            return `"${strValue}"`;
-          }
-          return strValue;
-        })
-        .join(',');
-    });
-
-    const csvContent = [headers.join(','), ...csvRows].join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `${filename}_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
   };
 
   return (
