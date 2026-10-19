@@ -1,5 +1,5 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import { and, asc, count, eq } from 'drizzle-orm';
+import { and, asc, count, desc, eq, sql } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { expenses } from '../../db/schema';
 import {
@@ -18,7 +18,9 @@ export class ExpensesService {
     userId: string,
     paginationQuery: PaginationQueryDto = {},
   ) {
-    const where = eq(expenses.user_id, userId);
+    const where = paginationQuery.category && paginationQuery.category !== 'All'
+      ? and(eq(expenses.user_id, userId), eq(expenses.category, paginationQuery.category))
+      : eq(expenses.user_id, userId);
     const pagination = getPagination(paginationQuery);
     if (!pagination) {
       return this.db.query.expenses.findMany({
@@ -30,7 +32,7 @@ export class ExpensesService {
     const [items, [{ total }]] = await Promise.all([
       this.db.query.expenses.findMany({
         where,
-        orderBy: asc(expenses.date),
+        orderBy: desc(expenses.date),
         limit: pagination.limit,
         offset: pagination.offset,
       }),
@@ -45,6 +47,22 @@ export class ExpensesService {
       totalPages: Math.ceil(total / pagination.limit),
     };
     return result;
+  }
+
+  async getSummary(userId: string) {
+    const grouped = await this.db
+      .select({
+        category: expenses.category,
+        amount: sql<string>`coalesce(sum(${expenses.amount}), 0)::text`,
+      })
+      .from(expenses)
+      .where(eq(expenses.user_id, userId))
+      .groupBy(expenses.category);
+
+    return grouped.map((row) => ({
+      category: row.category,
+      amount: Number(row.amount),
+    }));
   }
 
   async findOne(id: string, userId: string) {

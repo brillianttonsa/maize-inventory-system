@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsInt, IsOptional, Max, Min } from 'class-validator';
+import { IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class PaginationQueryDto {
   @IsOptional()
@@ -14,6 +14,31 @@ export class PaginationQueryDto {
   @Min(1)
   @Max(100)
   limit?: number;
+
+  @IsOptional()
+  @IsString()
+  category?: string;
+
+  @IsOptional()
+  @IsString()
+  item?: string;
+
+  @IsOptional()
+  @IsString()
+  source?: string;
+}
+
+export class DashboardSummaryQueryDto {
+  @IsDateString()
+  date!: string;
+}
+
+export class DateRangeQueryDto {
+  @IsDateString()
+  from!: string;
+
+  @IsDateString()
+  to!: string;
 }
 
 export interface PaginatedResult<T> {

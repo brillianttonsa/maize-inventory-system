@@ -14,6 +14,7 @@ import { ProductionService } from './production.service';
 import { CreateProductionDto } from './dto/create-production.dto';
 import { UpdateProductionDto } from './dto/update-production.dto';
 import { PaginationQueryDto } from '../../common/dto/pagination-query.dto';
+import { DateRangeQueryDto } from '../../common/dto/pagination-query.dto';
 import {
   type AuthenticatedRequest,
   JwtAuthGuard,
@@ -23,6 +24,14 @@ import {
 @UseGuards(JwtAuthGuard)
 export class ProductionController {
   constructor(private readonly productionService: ProductionService) {}
+
+  @Get('chart-data')
+  getChartData(
+    @Req() req: AuthenticatedRequest,
+    @Query() query: DateRangeQueryDto,
+  ) {
+    return this.productionService.getChartData(req.user.id, query.from, query.to);
+  }
 
   @Get()
   findAll(

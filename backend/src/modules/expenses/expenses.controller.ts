@@ -32,6 +32,11 @@ export class ExpensesController {
     return this.expensesService.findAll(req.user.id, pagination);
   }
 
+  @Get('summary')
+  getSummary(@Req() req: AuthenticatedRequest) {
+    return this.expensesService.getSummary(req.user.id);
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string, @Req() req: AuthenticatedRequest) {
     return this.expensesService.findOne(id, req.user.id);
