@@ -15,7 +15,7 @@ export const getProductionStats = async (): Promise<ProductionStats> => {
 
     const totalMaize = data.reduce((sum, p) => sum + Number(p.maize_quantity || 0), 0);
     const totalFlour = data.reduce((sum, p) => sum + Number(p.flour_output || 0), 0);
-    const totalBran = data.reduce((sum, p) => sum + Number(p.bran_debe_quantity || 0) / 7, 0);
+    const totalBran = data.reduce((sum, p) => sum + Number(p.bran_quantity || 0), 0);
 
     const efficiency =
       totalMaize > 0 ? ((totalFlour / totalMaize) * 100).toFixed(2) : 0;

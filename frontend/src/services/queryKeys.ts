@@ -4,7 +4,8 @@ export const queryKeys = {
   sales: {
     all: ['sales'] as const,
     list: ['sales', 'list'] as const,
-    page: (page: number, limit: number) => ['sales', 'page', page, limit] as const,
+    page: (page: number, limit: number, product: string, sackSize: string) =>
+      ['sales', 'page', page, limit, product, sackSize] as const,
   },
   expenses: {
     all: ['expenses'] as const,

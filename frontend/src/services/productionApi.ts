@@ -7,8 +7,7 @@ export interface ProductionPayload {
   flour_sacks_5kg?: number;
   flour_sacks_10kg?: number;
   flour_sacks_25kg?: number;
-  bran_unit_count?: number;
-  bran_unit?: 'gunia';
+  bran_quantity?: number;
   date: string;
 }
 
@@ -17,6 +16,7 @@ export interface ProductionChartDay {
   flour: number;
   bran: number;
 }
+export interface PackagingBreakdown { packageSize: 5 | 10 | 25; sacks: number; totalWeight: number; }
 
 export const productionService = {
   getAll: async (): Promise<ProductionBatch[]> =>
@@ -31,6 +31,7 @@ export const productionService = {
         params: { from, to },
       })
     ).data,
+  getPackagingBreakdown: async (): Promise<PackagingBreakdown[]> => (await api.get<PackagingBreakdown[]>('/production/packaging-breakdown')).data,
   create: async (payload: ProductionPayload): Promise<ProductionBatch> =>
     (await api.post<ProductionBatch>('/production', payload)).data,
   update: async (id: string, payload: Partial<ProductionPayload>): Promise<ProductionBatch> =>

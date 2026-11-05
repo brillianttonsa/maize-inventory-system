@@ -1,7 +1,7 @@
 import api from './api';
 
 export interface UpdateProfilePayload {
-  name: string;
+  username: string;
   email: string;
 }
 

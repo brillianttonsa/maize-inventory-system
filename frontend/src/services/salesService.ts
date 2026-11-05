@@ -13,23 +13,19 @@ export interface SalePayload {
   customer_name: string;
   customer_contact: string;
   product_type: string;
-  quantity: number;
-  sack_count?: number;
+  sack_count: number;
   sack_size?: 5 | 10 | 25;
-  bran_unit_count?: number;
-  bran_unit?: 'gunia';
-  price_per_kg: number;
+  price_per_sack: number;
   delivery_cost: number;
   delivery_address: string;
-  payment_method: string;
-  total_amount: number;
   date: string;
 }
 
 export const salesService = {
   getAll: async (): Promise<Sale[]> => (await api.get<Sale[]>('/sales')).data,
-  getPage: async (page: number, limit: number): Promise<PaginatedResponse<Sale>> =>
-    (await api.get<PaginatedResponse<Sale>>('/sales', { params: { page, limit } })).data,
+  getPage: async (page: number, limit: number, filters: { productType: string; sackSize: string }): Promise<PaginatedResponse<Sale>> =>
+    (await api.get<PaginatedResponse<Sale>>('/sales', { params: { page, limit, product_type: filters.productType, sack_size: filters.sackSize || undefined } })).data,
+  getSummary: async (): Promise<{ flour5kg: number; flour10kg: number; flour25kg: number; bran: number }> => (await api.get('/sales/summary')).data,
   create: async (payload: SalePayload): Promise<Sale> =>
     (await api.post<Sale>('/sales', payload)).data,
   update: async (id: string, payload: Partial<SalePayload>): Promise<Sale> =>

@@ -10,12 +10,10 @@ export interface ExpenseSummary {
 export interface ExpensePayload {
   date: string;
   category: string;
-  amount: number;
+  total_amount?: number;
   unit_value?: number;
   unit_cost?: number;
   sack_size?: 5 | 10 | 25;
-  paid_by?: string;
-  method?: string;
   notes?: string;
 }
 

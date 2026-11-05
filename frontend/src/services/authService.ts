@@ -4,7 +4,7 @@ import type { AuthResponse, LoginPayload, SignupPayload } from '../types/website
 export interface SignupResponse {
   success: boolean;
   message: string;
-  user: { id: string; name: string; username: string; email: string };
+  user: { id: string; username: string; email: string };
 }
 
 export interface ForgotPasswordResponse {
