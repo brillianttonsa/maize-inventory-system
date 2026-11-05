@@ -32,6 +32,11 @@ export class SalesController {
     return this.salesService.findAll(req.user.id, pagination);
   }
 
+  @Get('summary')
+  getSummary(@Req() req: AuthenticatedRequest) {
+    return this.salesService.getSummary(req.user.id);
+  }
+
   @Post()
   create(@Body() dto: CreateSaleDto, @Req() req: AuthenticatedRequest) {
     return this.salesService.create(req.user.id, dto);

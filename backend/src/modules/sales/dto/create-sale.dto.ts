@@ -1,4 +1,4 @@
-import { IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsNotEmpty, IsNumber, IsOptional, IsString, Min } from 'class-validator';
 
 export class CreateSaleDto {
   @IsNotEmpty({ message: 'Customer name is required' })
@@ -10,45 +10,28 @@ export class CreateSaleDto {
   customer_contact!: string;
 
   @IsNotEmpty({ message: 'Product type is required' })
-  @IsString()
+  @IsIn(['flour', 'bran'])
   product_type!: string;
 
-  @IsNumber()
-  quantity!: number;
-
-  @IsOptional()
   @IsInt()
-  sack_count?: number;
+  @Min(1)
+  sack_count!: number;
 
   @IsOptional()
   @IsIn([5, 10, 25], { message: 'Sack size must be 5, 10, or 25 kg' })
   sack_size?: number;
 
-  @IsOptional()
   @IsNumber()
-  bran_unit_count?: number;
-
-  @IsOptional()
-  @IsIn(['gunia'])
-  bran_unit?: 'gunia';
+  @Min(0.01)
+  price_per_sack!: number;
 
   @IsNumber()
-  price_per_kg!: number;
-
-  @IsNumber()
+  @Min(0)
   delivery_cost!: number;
 
   @IsNotEmpty({ message: 'Delivery address is required' })
   @IsString()
   delivery_address!: string;
-
-  @IsNotEmpty({ message: 'Payment method is required' })
-  @IsString()
-  payment_method!: string;
-
-  @IsNumber()
-  total_amount!: number;
-
 
   @IsDateString()
   date!: string;
