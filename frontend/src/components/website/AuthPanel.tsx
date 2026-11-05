@@ -25,7 +25,6 @@ export function AuthPanel({
   const { login } = useAuth();
   const [credentials, setCredentials] = useState<LoginPayload>({ username: '', password: '' });
   const [signup, setSignup] = useState<SignupForm>({
-    name: '',
     username: '',
     email: '',
     password: '',
@@ -70,7 +69,6 @@ export function AuthPanel({
           return;
         }
         await authService.signup({
-          name: signup.name,
           username: signup.username,
           email: signup.email,
           password: signup.password,
@@ -138,7 +136,6 @@ export function AuthPanel({
         <form onSubmit={submit} className="mt-6 space-y-4">
           {mode === 'signup' && (
             <>
-              <Field label="Full name" value={signup.name} onChange={(value) => setSignup({ ...signup, name: value })} />
               <Field label="Username" value={signup.username} onChange={(value) => setSignup({ ...signup, username: value })} />
               <Field label="Email" type="email" value={signup.email} onChange={(value) => setSignup({ ...signup, email: value })} />
               <PasswordField label="Password" value={signup.password} show={showPassword} onToggle={() => setShowPassword(!showPassword)} onChange={(value) => setSignup({ ...signup, password: value })} />
@@ -204,4 +201,3 @@ function PasswordField({ label, value, onChange, show, onToggle }: { label: stri
     </label>
   );
 }
-

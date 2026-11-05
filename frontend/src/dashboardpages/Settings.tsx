@@ -88,7 +88,7 @@ export default function Settings() {
                   <User className="w-5 h-5 mr-3 opacity-60 text-yellow-500" />
                   <input
                     type="text"
-                    value={currentUser?.name || ''}
+                    value={currentUser?.username || ''}
                     disabled
                     className="w-full bg-transparent outline-none cursor-not-allowed text-gray-600"
                   />
