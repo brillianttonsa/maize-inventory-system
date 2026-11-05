@@ -15,11 +15,9 @@ const getUnitDisplay = (expense: Expense): string => {
   let unitText = '';
 
   if (category.includes('water')) {
-    unitText = 'Litres';
+    return `${expense.unit_value} Litres @ ${expense.unit_cost ?? 0} TSh`;
   } else if (category.includes('sack')) {
     return `${expense.unit_value} × ${expense.sack_size ?? 'unspecified'} kg sacks @ ${expense.unit_cost ?? 0} TSh`;
-  } else if (category.includes('water')) {
-    return `${expense.unit_value} Litres @ ${expense.unit_cost ?? 0} TSh`;
   } else if (category.includes('electricity')) {
     unitText = 'Units';
   }
@@ -95,7 +93,7 @@ const ExpenseTable = ({
         <table className="min-w-full divide-y divide-gray-200">
           <thead className="bg-yellow-100">
             <tr>
-              {['S/N', 'Date', 'Category', 'Quantity/Unit', 'Amount (TSh)', 'Paid By', 'Method', 'Description', 'Action'].map(
+              {['S/N', 'Date', 'Category', 'Quantity/Unit', 'Amount (TSh)', 'Description', 'Action'].map(
                 (header) => (
                   <th key={header} className={thClass}>
                     {header}
@@ -107,13 +105,13 @@ const ExpenseTable = ({
           <tbody className="bg-white divide-y divide-gray-100 text-gray-800">
             {loading ? (
               <tr>
-                <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
                   Loading...
                 </td>
               </tr>
             ) : expenses.length === 0 ? (
               <tr>
-                <td colSpan={9} className="px-4 py-4 text-center text-gray-500">
+                <td colSpan={7} className="px-4 py-4 text-center text-gray-500">
                   No expenses recorded yet.
                 </td>
               </tr>
@@ -139,10 +137,8 @@ const ExpenseTable = ({
                     {getUnitDisplay(expense) || '-'}
                   </td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm font-bold text-red-600">
-                    {Number(expense.amount).toLocaleString()}
+                    {Number(expense.total_amount).toLocaleString()}
                   </td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">{expense.paid_by}</td>
-                  <td className="px-4 py-3 whitespace-nowrap text-sm">{expense.method}</td>
                   <td className="px-4 py-3 text-sm max-w-xs">{expense.notes}</td>
                   <td className="px-4 py-3 whitespace-nowrap text-sm">
                     <TableActions item={expense} handleEdit={handleEdit} handleDelete={handleDelete} />

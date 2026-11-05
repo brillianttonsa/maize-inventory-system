@@ -4,18 +4,14 @@ import { CATEGORIES } from './constants';
 import { errorClass, formDivClass, headerFormClass, inputClass, labelClass } from '../common/cssCommon';
 import { SaveOrUpdateBtn } from '../common/SaveOrUpdateBtn';
 
-const PAYMENT_METHODS = ['Cash', 'Mobile Money', 'Bank Transfer'];
-
 interface ExpenseFormProps {
   formData: {
     date: string;
     category: string;
-    amount: string;
+    totalAmount: string;
     unitValue: string;
     unitCost: string;
     sackSize: string;
-    paidBy: string;
-    method: string;
     notes: string;
   };
   editId: string | null;
@@ -54,12 +50,6 @@ const ExpenseForm = ({
             />
           </div>
 
-          {['sacks', 'water'].includes(formData.category.toLowerCase()) && (
-            <p className="text-sm font-semibold text-green-700">
-              Total Amount: {(Number(formData.unitValue || 0) * Number(formData.unitCost || 0)).toLocaleString()} TSh
-            </p>
-          )}
-
           <div>
             <label className={labelClass}>Category</label>
             <select
@@ -82,53 +72,19 @@ const ExpenseForm = ({
 
           <RenderUnitInput formData={formData} handleChange={handleChange} />
 
-          <div>
-            <label className={labelClass}>Amount (TSh)</label>
+          {!['sacks', 'water'].includes(formData.category.toLowerCase()) && <div>
+            <label className={labelClass}>Total Amount (TSh)</label>
             <input
               type="number"
               step="1"
-              name="amount"
-              value={formData.amount}
+              name="totalAmount"
+              value={formData.totalAmount}
               onChange={handleChange}
               placeholder="e.g., 50000"
               className={inputClass}
               required
             />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className={labelClass}>Paid By (Payer Name)</label>
-              <input
-                type="text"
-                name="paidBy"
-                value={formData.paidBy}
-                onChange={handleChange}
-                placeholder="e.g., John Doe"
-                className={inputClass}
-                required
-              />
-            </div>
-            <div>
-              <label className={labelClass}>Payment Method</label>
-              <select
-                name="method"
-                value={formData.method}
-                onChange={handleChange}
-                className={inputClass}
-                required
-              >
-                <option value="" disabled>
-                  Select Method
-                </option>
-                {PAYMENT_METHODS.map((method) => (
-                  <option key={method} value={method}>
-                    {method}
-                  </option>
-                ))}
-              </select>
-            </div>
-          </div>
+          </div>}
 
           <div>
             <label className={labelClass}>notes (Max 3 words)</label>
