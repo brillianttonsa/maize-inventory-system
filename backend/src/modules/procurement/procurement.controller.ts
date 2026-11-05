@@ -32,6 +32,11 @@ export class ProcurementController {
     return this.procurementService.findAll(req.user.id, pagination);
   }
 
+  @Get('summary')
+  getSummary(@Req() req: AuthenticatedRequest) {
+    return this.procurementService.getSummary(req.user.id);
+  }
+
   @Post()
   create(@Body() dto: CreateProcurementDto, @Req() req: AuthenticatedRequest) {
     return this.procurementService.create(req.user.id, dto);
