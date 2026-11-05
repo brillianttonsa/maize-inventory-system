@@ -57,6 +57,41 @@
       "when": 1783668000000,
       "tag": "0007_remove_legacy_production_columns",
       "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793668000000,
+      "tag": "0008_procurement_cost_breakdown",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793698800000,
+      "tag": "0009_sales_payment_method_optional",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793699400000,
+      "tag": "0010_operation_rounds",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793699500000,
+      "tag": "0011_maize_purchase_cost",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793851464108,
+      "tag": "0012_yellow_harrier",
+      "breakpoints": true
     }
   ]
 }
