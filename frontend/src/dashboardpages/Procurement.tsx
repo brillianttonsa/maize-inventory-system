@@ -10,18 +10,17 @@ const ProcurementDashboard = () => {
     currentPage,
     currentOrders,
     totalPages,
-    indexOfFirst,
     error,
     saving,
     handleChange,
     handleSaveOrUpdate,
     handleEdit,
-    handleDelete,
     handleCancelEdit,
     paginate,
-    totalCost,
+    summary,
+    summaryLoading,
+    summaryError,
     loading,
-    totalRecords,
   } = useProcurementLogic();
 
   return (
@@ -35,7 +34,6 @@ const ProcurementDashboard = () => {
           handleCancelEdit={handleCancelEdit}
           error={error}
           saving={saving}
-          totalCost={Number(totalCost)}
         />
       </div>
 
@@ -43,14 +41,14 @@ const ProcurementDashboard = () => {
         <OrdersTable
           orders={orders}
           currentOrders={currentOrders}
-          indexOfFirst={indexOfFirst}
           handleEdit={handleEdit}
-          handleDelete={handleDelete}
           currentPage={currentPage}
           totalPages={totalPages}
           paginate={paginate}
           loading={loading}
-          totalRecords={totalRecords}
+          summary={summary}
+          summaryLoading={summaryLoading}
+          summaryError={summaryError}
         />
       </div>
     </div>

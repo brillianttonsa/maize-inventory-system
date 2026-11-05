@@ -10,7 +10,6 @@ const SalesDashboard = () => {
     loading,
     saving,
     editId,
-    totalCost,
     currentPage,
     currentSales,
     totalPages,
@@ -23,6 +22,12 @@ const SalesDashboard = () => {
     handleDelete,
     handleCancelEdit,
     paginate,
+    productFilter,
+    sackSizeFilter,
+    handleFilterChange,
+    summary,
+    summaryLoading,
+    summaryError,
   } = useSalesLogic();
 
   return (
@@ -36,7 +41,6 @@ const SalesDashboard = () => {
           error={error}
           handleCancelEdit={handleCancelEdit}
           saving={saving}
-          totalCost={Number(totalCost)}
         />
       </div>
 
@@ -53,6 +57,12 @@ const SalesDashboard = () => {
           loading={loading}
           updating={updating}
           loadError={loadError}
+          productFilter={productFilter}
+          sackSizeFilter={sackSizeFilter}
+          handleFilterChange={handleFilterChange}
+          summary={summary}
+          summaryLoading={summaryLoading}
+          summaryError={summaryError}
         />
       </div>
     </div>

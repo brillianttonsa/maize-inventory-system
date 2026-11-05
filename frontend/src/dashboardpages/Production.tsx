@@ -10,17 +10,17 @@ const ProductionDashboard = () => {
     currentPage,
     currentBatches,
     totalPages,
-    indexOfFirst,
-    totalRecords,
     error,
     saving,
     handleChange,
     handleSaveOrUpdate,
     handleEdit,
-    handleDelete,
     handleCancelEdit,
     paginate,
     loading,
+    packaging,
+    packagingLoading,
+    packagingError,
   } = useProductionLogic();
 
   return (
@@ -41,14 +41,14 @@ const ProductionDashboard = () => {
         <ProductionTable
           batches={batches}
           currentBatches={currentBatches}
-          indexOfFirst={indexOfFirst}
           handleEdit={handleEdit}
-          handleDelete={handleDelete}
           currentPage={currentPage}
           totalPages={totalPages}
           paginate={paginate}
           loading={loading}
-          totalRecords={totalRecords}
+          packaging={packaging}
+          packagingLoading={packagingLoading}
+          packagingError={packagingError}
         />
       </div>
     </div>

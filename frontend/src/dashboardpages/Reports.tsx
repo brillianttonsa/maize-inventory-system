@@ -26,7 +26,7 @@ export default function Reports() {
 
   const handleArchiveAndReset = async () => {
     const confirmed = window.confirm(
-      'This will download a complete CSV archive and permanently remove all your sales, expenses, production, and procurement records. Your account will remain. Continue?',
+      'This will download a complete CSV archive and permanently remove all sales, expenses, production, and procurement records in the active round. Other rounds and your account will remain. Continue?',
     );
     if (!confirmed) return;
 
@@ -59,7 +59,7 @@ export default function Reports() {
     <div className="p-8 space-y-8 bg-gray-50 min-h-screen">
       <div>
         <h1 className="text-3xl font-bold mb-2 text-yellow-600">Reports</h1>
-        <p className="text-gray-500">Generate and download comprehensive reports for all operations</p>
+        <p className="text-gray-500">Generate and download reports for the active operation round</p>
       </div>
 
       <Card className="shadow-lg border border-l-4 border-yellow-500">
@@ -69,7 +69,7 @@ export default function Reports() {
             <h3 className="text-2xl font-semibold text-yellow-600">Comprehensive Report</h3>
           </div>
           <Card.Description className="mt-2">
-            Downloads one CSV with every production, sales, procurement, and expense transaction, plus summary reviews.
+            Downloads one CSV with every production, sales, procurement, and expense transaction in the active round, plus summary reviews.
           </Card.Description>
         </Card.Header>
         <Card.Content>
@@ -90,7 +90,7 @@ export default function Reports() {
             <h3 className="text-2xl font-semibold text-red-700">Archive &amp; Start Fresh</h3>
           </div>
           <Card.Description className="mt-2">
-            Downloads all current operational data as one CSV archive, then permanently removes sales, expenses, production, and procurement records so you can begin again.
+            Downloads the active round as one CSV archive, then permanently removes only that round's sales, expenses, production, and procurement records. Other rounds remain unchanged.
           </Card.Description>
         </Card.Header>
         <Card.Content>

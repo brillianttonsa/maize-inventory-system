@@ -18,7 +18,7 @@ export default function Dashboard() {
         <div>
           <h2 className="text-3xl font-bold text-gray-800">
             Welcome back,
-            <span className="text-yellow-700"> {currentUser?.name || 'User'}! 👋</span>
+            <span className="text-yellow-700"> {currentUser?.username || 'User'}! 👋</span>
           </h2>
           <p className="mt-1 text-gray-600">Here's what's happening with your production today</p>
         </div>

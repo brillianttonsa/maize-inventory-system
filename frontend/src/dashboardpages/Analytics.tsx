@@ -72,7 +72,7 @@ const Analytics = () => {
       ]);
 
       const revenueAgg = aggregateByDate(sales, { revenue: 'total_amount' });
-      const expensesAgg = aggregateByDate(expenses, { expenses: 'amount' });
+      const expensesAgg = aggregateByDate(expenses, { expenses: 'total_amount' });
 
       const allRevenueDates = Array.from(
         new Set([...revenueAgg.map((d) => d.period), ...expensesAgg.map((e) => e.period)]),
@@ -114,17 +114,17 @@ const Analytics = () => {
       const totalSales = sales.reduce((sum, s) => sum + (parseFloat(String(s.total_amount)) || 0), 0);
       const totalCosts =
         procurement.reduce((sum, p) => sum + (parseFloat(String(p.total_cost)) || 0), 0) +
-        expenses.reduce((sum, e) => sum + (parseFloat(String(e.amount)) || 0), 0) +
+        expenses.reduce((sum, e) => sum + (parseFloat(String(e.total_amount)) || 0), 0) +
         sales.reduce((sum, s) => sum + (parseFloat(String(s.delivery_cost)) || 0), 0);
       setTotals({ totalSales, totalCosts });
 
-      const totalMaize = procurement.reduce((sum, p) => sum + (parseFloat(String(p.quantity)) || 0), 0);
+      const totalMaize = procurement.reduce((sum, p) => sum + (parseFloat(String(p.quantity_of_maize)) || 0), 0);
       setMaize(totalMaize);
 
       const totalFlour = production.reduce((sum, p) => sum + (parseFloat(String(p.flour_output)) || 0), 0);
       setFlour(totalFlour);
 
-      const totalBran = production.reduce((sum, p) => sum + (parseFloat(String(p.bran_debe_quantity)) || 0) / 7, 0);
+      const totalBran = production.reduce((sum, p) => sum + (parseFloat(String(p.bran_quantity)) || 0), 0);
       setBran(totalBran);
     } catch (err) {
       console.error(err);
