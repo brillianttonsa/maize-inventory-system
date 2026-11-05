@@ -2,7 +2,6 @@
 
 export interface User {
   id: string;
-  name: string;
   username: string;
   email: string;
 }
@@ -14,7 +13,6 @@ export interface AuthResponse {
 }
 
 export interface SignupPayload {
-  name: string;
   username: string;
   email: string;
   password: string;
@@ -31,7 +29,6 @@ export interface AuthPanelProps {
 }
 
 export interface SignupForm {
-  name: string;
   username: string;
   email: string;
   password: string;
