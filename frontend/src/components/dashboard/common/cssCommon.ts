@@ -12,7 +12,7 @@ export const headerFormClass = 'text-xl font-bold mb-6 text-yellow-700';
 
 export const gridInputClass = 'grid grid-cols-2 gap-4 mb-4';
 
-export const totalCostDivClass = 'mb-4 p-3 bg-green-50 rounded-md text-center border border-green-200';
+export const totalCostDivClass = 'mt-2 mb-4 p-3 bg-green-50 rounded-md text-center border border-green-200';
 
 export const h4TotalClass = 'text-md font-bold text-green-700';
 
