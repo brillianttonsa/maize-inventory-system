@@ -41,6 +41,11 @@ export class ProductionController {
     return this.productionService.findAll(req.user.id, pagination);
   }
 
+  @Get('packaging-breakdown')
+  getPackagingBreakdown(@Req() req: AuthenticatedRequest) {
+    return this.productionService.getPackagingBreakdown(req.user.id);
+  }
+
   @Post()
   create(@Body() dto: CreateProductionDto, @Req() req: AuthenticatedRequest) {
     return this.productionService.create(req.user.id, dto);
