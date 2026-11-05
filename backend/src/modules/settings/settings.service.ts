@@ -1,11 +1,12 @@
 import {
   BadRequestException,
+  ConflictException,
   Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
 import * as bcrypt from 'bcrypt';
-import { eq } from 'drizzle-orm';
+import { and, eq, ne } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import { users } from '../../db/schema';
 import { UpdateProfileDto } from './dto/update-profile.dto';
@@ -16,11 +17,22 @@ export class SettingsService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
 
   async updateProfile(userId: string, dto: UpdateProfileDto) {
+    const [usernameTaken, emailTaken] = await Promise.all([
+      this.db.query.users.findFirst({
+        where: and(eq(users.username, dto.username), ne(users.id, userId)),
+      }),
+      this.db.query.users.findFirst({
+        where: and(eq(users.email, dto.email), ne(users.id, userId)),
+      }),
+    ]);
+    if (usernameTaken) throw new ConflictException('Username already taken');
+    if (emailTaken) throw new ConflictException('Email already registered');
+
     const [updated] = await this.db
       .update(users)
-      .set({ name: dto.name, email: dto.email })
+      .set({ username: dto.username, email: dto.email })
       .where(eq(users.id, userId))
-      .returning({ id: users.id, name: users.name, email: users.email });
+      .returning({ id: users.id, username: users.username, email: users.email });
 
     if (!updated) {
       throw new NotFoundException('User not found');
