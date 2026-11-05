@@ -11,7 +11,7 @@ import * as jwt from 'jsonwebtoken';
 import * as crypto from 'crypto';
 import { eq, and, gt } from 'drizzle-orm';
 import { DB_PROVIDER, type  DbClient } from '../../db/db.module';
-import { users, passwordResetTokens } from '../../db/schema';
+import { operationRounds, users, passwordResetTokens } from '../../db/schema';
 import { env } from '../../config/env';
 import { SignupDto } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
@@ -22,7 +22,7 @@ const RESET_TOKEN_TTL_MS = 60 * 60 * 1000; // 1 hour
 export class AuthService {
   constructor(@Inject(DB_PROVIDER) private readonly db: DbClient) {}
 
-  async signup({ name, username, email, password }: SignupDto) {
+  async signup({ username, email, password }: SignupDto) {
     const emailTaken = await this.db.query.users.findFirst({
       where: eq(users.email, email),
     });
@@ -39,17 +39,22 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const [newUser] = await this.db
-      .insert(users)
-      .values({ name, username, email, password: hashedPassword })
-      .returning({
-        id: users.id,
-        name: users.name,
-        username: users.username,
-        email: users.email,
+    return this.db.transaction(async (tx) => {
+      const [newUser] = await tx
+        .insert(users)
+        .values({ username, email, password: hashedPassword })
+        .returning({
+          id: users.id,
+          username: users.username,
+          email: users.email,
+        });
+      await tx.insert(operationRounds).values({
+        user_id: newUser.id,
+        name: 'Round 1',
+        is_active: true,
       });
-
-    return newUser;
+      return newUser;
+    });
   }
 
   async login({ username, password }: LoginDto) {
@@ -75,7 +80,6 @@ export class AuthService {
       token,
       user: {
         id: user.id,
-        name: user.name,
         username: user.username,
         email: user.email,
       },
