@@ -6,8 +6,6 @@ import {
   formDivClass,
   headerFormClass,
   gridInputClass,
-  totalCostDivClass,
-  h4TotalClass,
 } from '../common/cssCommon';
 import { SaveOrUpdateBtn } from '../common/SaveOrUpdateBtn';
 
@@ -17,15 +15,11 @@ interface SalesFormProps {
     customerContact: string;
     date: string;
     productType: string;
-    quantity: string;
     sackCount: string;
     sackSize: string;
-    branUnitCount: string;
-    branUnit: 'gunia';
-    pricePerKg: string;
+    pricePerSack: string;
     deliveryCost: string;
     deliveryAddress: string;
-    paymentMethod: string;
   };
   handleChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleSaveOrUpdate: (e: FormEvent) => void;
@@ -33,7 +27,6 @@ interface SalesFormProps {
   error: string | null;
   handleCancelEdit: () => void;
   saving: boolean;
-  totalCost: number;
 }
 
 const SalesForm = ({
@@ -44,7 +37,6 @@ const SalesForm = ({
   error,
   handleCancelEdit,
   saving,
-  totalCost,
 }: SalesFormProps) => {
   return (
     <div className={formDivClass}>
@@ -104,8 +96,8 @@ const SalesForm = ({
 
           {formData.productType === 'bran' ? (
             <div>
-              <label className={labelClass}>Bran Quantity</label>
-              <input type="number" min="0.01" step="any" name="branUnitCount" value={formData.branUnitCount} onChange={handleChange} className={inputClass} required />
+              <label className={labelClass}>Number of Bran Sacks</label>
+              <input type="number" min="1" step="1" name="sackCount" value={formData.sackCount} onChange={handleChange} className={inputClass} required />
             </div>
           ) : (
           <div>
@@ -118,8 +110,8 @@ const SalesForm = ({
         <div className={gridInputClass}>
           {formData.productType === 'bran' ? (
             <div>
-              <label className={labelClass}>Bran Unit</label>
-              <input value="Gunia (7 debe)" className={inputClass} disabled />
+              <label className={labelClass}>Sack Size</label>
+              <input value="Bran sack" className={inputClass} disabled />
             </div>
           ) : (
           <div>
@@ -133,12 +125,12 @@ const SalesForm = ({
           </div>
           )}
           <div>
-            <label className={labelClass}>{formData.productType === 'bran' ? 'Price per selected unit (/=)' : 'Price per kg (/=)'}</label>
+            <label className={labelClass}>Price per sack (/=)</label>
             <input
               type="number"
               step="0.01"
-              name="pricePerKg"
-              value={formData.pricePerKg}
+              name="pricePerSack"
+              value={formData.pricePerSack}
               onChange={handleChange}
               required
               className={inputClass}
@@ -158,12 +150,6 @@ const SalesForm = ({
           </div>
         </div>
 
-        <p className="mb-4 text-sm text-gray-600">{formData.productType === 'bran' ? <>Total quantity: <strong>{Number(formData.branUnitCount || 0) * 7} debe</strong></> : <>Total quantity: <strong>{Number(formData.sackCount || 0) * Number(formData.sackSize || 0)} kg</strong></>}</p>
-
-        <div className={totalCostDivClass}>
-          <h4 className={h4TotalClass}>TOTAL AMOUNT: {totalCost.toLocaleString()}/=</h4>
-        </div>
-
         <div className="mb-4">
           <label className={labelClass}>Delivery Address</label>
           <input
@@ -176,21 +162,6 @@ const SalesForm = ({
             maxLength={20}
           />
         </div>
-
-        <div className="mb-4">
-          <label className={labelClass}>Payment Method</label>
-          <select
-            name="paymentMethod"
-            value={formData.paymentMethod}
-            onChange={handleChange}
-            className={inputClass}
-          >
-            <option value="cash">Cash</option>
-            <option value="bank_transfer">Bank Transfer</option>
-            <option value="mobile_money">Mobile Money</option>
-          </select>
-        </div>
-
 
         {error && <p className={errorClass}>{error}</p>}
 
