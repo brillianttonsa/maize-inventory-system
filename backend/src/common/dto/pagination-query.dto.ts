@@ -1,5 +1,5 @@
 import { Type } from 'class-transformer';
-import { IsDateString, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
+import { IsDateString, IsIn, IsInt, IsOptional, IsString, Max, Min } from 'class-validator';
 
 export class PaginationQueryDto {
   @IsOptional()
@@ -26,6 +26,16 @@ export class PaginationQueryDto {
   @IsOptional()
   @IsString()
   source?: string;
+
+  @IsOptional()
+  @IsString()
+  @IsIn(['All', 'flour', 'bran'])
+  product_type?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsIn([5, 10, 25])
+  sack_size?: number;
 }
 
 export class DashboardSummaryQueryDto {
