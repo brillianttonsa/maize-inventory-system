@@ -10,7 +10,7 @@ interface ProductionFormProps {
     flourSacks5kg: string;
     flourSacks10kg: string;
     flourSacks25kg: string;
-    branUnitCount: string;
+    branQuantity: string;
   };
   handleChange: (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => void;
   handleSaveOrUpdate: (e: FormEvent) => void;
@@ -52,6 +52,7 @@ const ProductionForm = ({
               type="number"
               name="maizeTons"
               value={formData.maizeTons}
+              min="0.01"
               step="0.01"
               onChange={handleChange}
               className={inputClass}
@@ -59,13 +60,9 @@ const ProductionForm = ({
             />
           </div>
           <div>
-            <label className={labelClass}>Bran Output</label>
-            <input type="number" step="any" min="0" name="branUnitCount" value={formData.branUnitCount} onChange={handleChange} className={inputClass} />
+            <label className={labelClass}>Bran sacks</label>
+            <input type="number" step="1" min="0" name="branQuantity" value={formData.branQuantity} onChange={handleChange} className={inputClass} />
           </div>
-        </div>
-
-        <div className={gridInputClass}>
-          
         </div>
 
         <div className={gridInputClass}>
