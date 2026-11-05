@@ -18,7 +18,7 @@ interface ProductionFormData {
   flourSacks5kg: string;
   flourSacks10kg: string;
   flourSacks25kg: string;
-  branUnitCount: string;
+  branQuantity: string;
   date: string;
 }
 
@@ -27,7 +27,7 @@ const initialFormData: ProductionFormData = {
   flourSacks5kg: '',
   flourSacks10kg: '',
   flourSacks25kg: '',
-  branUnitCount: '',
+  branQuantity: '',
   date: getTodayDate(),
 };
 
@@ -44,6 +44,7 @@ export const useProductionLogic = () => {
     queryFn: () => productionService.getPage(currentPage, itemsPerPage),
     placeholderData: keepPreviousData,
   });
+  const packagingQuery = useQuery({ queryKey: [...queryKeys.production.all, 'packaging'], queryFn: productionService.getPackagingBreakdown });
   const createMutation = useMutation({
     mutationFn: productionService.create,
     onSuccess: () => invalidateRecordQueries(queryClient, queryKeys.production.all),
@@ -71,7 +72,7 @@ export const useProductionLogic = () => {
   const handleSaveOrUpdate = async (e: FormEvent) => {
     e.preventDefault();
     setFormError(null);
-    const { maizeTons, flourSacks5kg, flourSacks10kg, flourSacks25kg, branUnitCount, date } =
+    const { maizeTons, flourSacks5kg, flourSacks10kg, flourSacks25kg, branQuantity, date } =
       formData;
 
     const payload = {
@@ -79,7 +80,7 @@ export const useProductionLogic = () => {
       flour_sacks_5kg: Number(flourSacks5kg || 0),
       flour_sacks_10kg: Number(flourSacks10kg || 0),
       flour_sacks_25kg: Number(flourSacks25kg || 0),
-      ...(branUnitCount ? { bran_unit_count: Number(branUnitCount), bran_unit: 'gunia' as const } : {}),
+      bran_quantity: Number(branQuantity || 0),
       date,
     };
 
@@ -97,17 +98,17 @@ export const useProductionLogic = () => {
       resetForm({ initialFormData, setFormData, setEditId });
     } catch (err) {
       console.error(err);
-      setFormError('Batch record fail');
+      setFormError((err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message instanceof Array ? (err as { response: { data: { message: string[] } } }).response.data.message.join(', ') : (err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? 'Could not save the production batch.');
     }
   };
 
   const handleEdit = (batch: ProductionBatch) => {
     setFormData({
-      maizeTons: String(batch.maize_quantity / 1000),
+      maizeTons: String(Number(batch.maize_quantity) / 1000),
       flourSacks5kg: String(batch.flour_sacks_5kg || ''),
       flourSacks10kg: String(batch.flour_sacks_10kg || ''),
       flourSacks25kg: String(batch.flour_sacks_25kg || ''),
-      branUnitCount: batch.bran_debe_quantity ? String(Number(batch.bran_debe_quantity) / 7) : '',
+      branQuantity: batch.bran_quantity == null ? '' : String(batch.bran_quantity),
       date: batch.date,
     });
     setEditId(batch.id);
@@ -155,5 +156,8 @@ export const useProductionLogic = () => {
     totalRecords: batchesQuery.data?.total ?? 0,
     currentPage,
     paginate,
+    packaging: packagingQuery.data ?? [],
+    packagingLoading: packagingQuery.isPending,
+    packagingError: packagingQuery.isError ? 'Failed to load flour packaging totals.' : null,
   };
 };

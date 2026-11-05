@@ -1,4 +1,5 @@
 import { useState, type ChangeEvent, type FormEvent } from 'react';
+import axios from 'axios';
 import {
   keepPreviousData,
   useMutation,
@@ -18,15 +19,11 @@ interface SaleFormData {
   customerContact: string;
   date: string;
   productType: string;
-  quantity: string;
   sackCount: string;
   sackSize: string;
-  branUnitCount: string;
-  branUnit: 'gunia';
-  pricePerKg: string;
+  pricePerSack: string;
   deliveryCost: string;
   deliveryAddress: string;
-  paymentMethod: string;
 }
 
 const initialFormData: SaleFormData = {
@@ -34,15 +31,11 @@ const initialFormData: SaleFormData = {
   customerContact: '',
   date: getTodayDate(),
   productType: 'flour',
-  quantity: '',
   sackCount: '',
   sackSize: '',
-  branUnitCount: '',
-  branUnit: 'gunia',
-  pricePerKg: '',
+  pricePerSack: '',
   deliveryCost: '',
   deliveryAddress: '',
-  paymentMethod: 'cash',
 };
 
 export const useSalesLogic = () => {
@@ -50,13 +43,23 @@ export const useSalesLogic = () => {
   const [formData, setFormData] = useState<SaleFormData>(initialFormData);
   const [editId, setEditId] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [productFilter, setProductFilter] = useState('All');
+  const [sackSizeFilter, setSackSizeFilter] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
   const itemsPerPage = 5;
 
   const salesQuery = useQuery({
-    queryKey: queryKeys.sales.page(currentPage, itemsPerPage),
-    queryFn: () => salesService.getPage(currentPage, itemsPerPage),
+    queryKey: queryKeys.sales.page(currentPage, itemsPerPage, productFilter, sackSizeFilter),
+    queryFn: () =>
+      salesService.getPage(currentPage, itemsPerPage, {
+        productType: productFilter,
+        sackSize: sackSizeFilter,
+      }),
     placeholderData: keepPreviousData,
+  });
+  const summaryQuery = useQuery({
+    queryKey: [...queryKeys.sales.all, 'summary'],
+    queryFn: salesService.getSummary,
   });
   const createSaleMutation = useMutation({
     mutationFn: salesService.create,
@@ -88,10 +91,18 @@ export const useSalesLogic = () => {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const { sackCount, sackSize, branUnitCount, branUnit, pricePerKg, productType } = formData;
+  const handleFilterChange = (name: 'productType' | 'sackSize', value: string) => {
+    if (name === 'productType') {
+      setProductFilter(value);
+      if (value === 'bran') setSackSizeFilter('');
+    } else {
+      setSackSizeFilter(value);
+    }
+    setCurrentPage(1);
+  };
+
+  const { sackCount, sackSize, pricePerSack, productType } = formData;
   const isBran = productType === 'bran';
-  const quantity = isBran ? Number(branUnitCount) * 7 : Number(sackCount) * Number(sackSize);
-  const totalCost = ((isBran ? Number(branUnitCount) : Number(sackCount)) * Number(pricePerKg)).toFixed(2);
 
   const handleSaveOrUpdate = async (e: FormEvent) => {
     e.preventDefault();
@@ -101,11 +112,9 @@ export const useSalesLogic = () => {
       customerContact,
       date,
       productType,
-      quantity,
-      pricePerKg,
+      pricePerSack,
       deliveryCost,
       deliveryAddress,
-      paymentMethod,
     } = formData;
 
     const payload = {
@@ -113,15 +122,11 @@ export const useSalesLogic = () => {
       customer_contact: customerContact,
       date,
       product_type: productType,
-      quantity: Number(quantity),
-      ...(isBran
-        ? { bran_unit_count: Number(branUnitCount), bran_unit: 'gunia' as const }
-        : { sack_count: Number(sackCount), sack_size: Number(sackSize) as 5 | 10 | 25 }),
-      price_per_kg: Number(pricePerKg),
+      sack_count: Number(sackCount),
+      ...(!isBran && { sack_size: Number(sackSize) as 5 | 10 | 25 }),
+      price_per_sack: Number(pricePerSack),
       delivery_cost: Number(deliveryCost),
       delivery_address: deliveryAddress,
-      payment_method: paymentMethod,
-      total_amount: Number(totalCost),
     };
 
     try {
@@ -137,7 +142,16 @@ export const useSalesLogic = () => {
       resetForm({ initialFormData, setFormData, setEditId });
     } catch (error) {
       console.error(error);
-      setFormError('Sale record fail');
+      if (axios.isAxiosError<{ message?: string | string[] }>(error)) {
+        const message = error.response?.data?.message;
+        setFormError(
+          Array.isArray(message)
+            ? message.join(', ')
+            : message ?? 'Could not save the sale.',
+        );
+      } else {
+        setFormError('Could not save the sale.');
+      }
     }
   };
 
@@ -147,15 +161,11 @@ export const useSalesLogic = () => {
       customerContact: sale.customer_contact,
       date: sale.date,
       productType: sale.product_type,
-      quantity: String(sale.quantity),
       sackCount: sale.sack_count ? String(sale.sack_count) : '',
       sackSize: sale.sack_size ? String(sale.sack_size) : '',
-      branUnitCount: sale.bran_unit_count ? String(sale.bran_unit_count) : '',
-      branUnit: 'gunia',
-      pricePerKg: String(sale.price_per_kg),
+      pricePerSack: String(sale.price_per_sack),
       deliveryCost: String(sale.delivery_cost),
       deliveryAddress: sale.delivery_address,
-      paymentMethod: sale.payment_method,
     });
     setEditId(sale.id);
   };
@@ -194,10 +204,15 @@ export const useSalesLogic = () => {
     loading,
     saving,
     editId,
-    totalCost,
     currentPage,
     currentSales,
     totalPages,
+    productFilter,
+    sackSizeFilter,
+    handleFilterChange,
+    summary: summaryQuery.data ?? { flour5kg: 0, flour10kg: 0, flour25kg: 0, bran: 0 },
+    summaryLoading: summaryQuery.isPending,
+    summaryError: summaryQuery.isError ? 'Failed to load sales summary.' : null,
     indexOfFirst,
     handleChange,
     handleSaveOrUpdate,

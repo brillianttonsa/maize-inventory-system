@@ -19,24 +19,20 @@ import { invalidateRecordQueries, queryKeys } from '../services/queryKeys';
 interface ExpenseFormData {
   date: string;
   category: string;
-  amount: string;
+  totalAmount: string;
   unitValue: string;
   unitCost: string;
   sackSize: string;
-  paidBy: string;
-  method: string;
   notes: string;
 }
 
 const initialFormData: ExpenseFormData = {
   date: getTodayDate(),
   category: '',
-  amount: '',
+  totalAmount: '',
   unitValue: '',
   unitCost: '',
   sackSize: '',
-  paidBy: '',
-  method: '',
   notes: '',
 };
 
@@ -140,11 +136,13 @@ export const useExpensesLogic = () => {
 
       if (name === 'category' && !requiresUnitInput(value)) {
         newState.unitValue = '';
+        newState.unitCost = '';
         newState.sackSize = '';
       }
 
       if (name !== 'unitValue' && !requiresUnitInput(newState.category)) {
         newState.unitValue = '';
+        newState.unitCost = '';
         newState.sackSize = '';
       }
 
@@ -158,22 +156,18 @@ export const useExpensesLogic = () => {
     e.preventDefault();
     setFormError(null);
 
-    const { date, category, amount, unitValue, unitCost, sackSize, paidBy, method, notes } = formData;
-    const calculatedAmount = ['sacks', 'water'].includes(category.toLowerCase())
-      ? Number(unitValue) * Number(unitCost)
-      : Number(amount);
+    const { date, category, totalAmount, unitValue, unitCost, sackSize, notes } = formData;
+    const usesUnitCost = ['sacks', 'water'].includes(category.toLowerCase());
 
     const payload = {
       date,
       category,
-      amount: calculatedAmount,
-      unit_value: Number(unitValue),
-      ...(category.toLowerCase() === 'sacks' || category.toLowerCase() === 'water'
+      ...(!usesUnitCost && { total_amount: Number(totalAmount) }),
+      ...(requiresUnitInput(category) && { unit_value: Number(unitValue) }),
+      ...(usesUnitCost
         ? { unit_cost: Number(unitCost) }
         : {}),
       ...(category.toLowerCase() === 'sacks' && { sack_size: Number(sackSize) as 5 | 10 | 25 }),
-      paid_by: paidBy,
-      method,
       notes,
     };
 
@@ -198,12 +192,10 @@ export const useExpensesLogic = () => {
     setFormData({
       date: expense.date,
       category: expense.category,
-      amount: String(expense.amount),
+      totalAmount: String(expense.total_amount),
       unitValue: expense.unit_value ? String(expense.unit_value) : '',
       unitCost: expense.unit_cost ? String(expense.unit_cost) : '',
       sackSize: expense.sack_size ? String(expense.sack_size) : '',
-      paidBy: expense.paid_by || '',
-      method: expense.method || '',
       notes: expense.notes || '',
     });
     setEditId(expense.id);
