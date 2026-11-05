@@ -12,6 +12,7 @@ import {
   sales,
   expenses,
 } from '../../db/schema';
+import { getActiveRoundId } from '../../common/rounds';
 
 interface MovementPageRow {
   date: string;
@@ -47,6 +48,7 @@ export class InventoryService {
 
   private async getMovementPage(
     userId: string,
+    roundId: string,
     paginationQuery: PaginationQueryDto,
     page: NonNullable<ReturnType<typeof getPagination>>,
     newestFirst = false,
@@ -64,11 +66,12 @@ export class InventoryService {
     const movements = sql`
       WITH all_movements AS (
         SELECT delivery_date::text AS date, 'Maize'::text AS item,
-          quantity::numeric AS quantity_in, 0::numeric AS quantity_out,
+          (quantity_of_maize * 1000)::numeric AS quantity_in, 0::numeric AS quantity_out,
           'Procurement'::text AS source,
-          concat('Procured ', quantity, ' kg from ', supplier) AS remarks,
+          concat('Procured ', quantity_of_maize, ' tons (',
+            quantity_of_maize * 1000, ' kg) from ', supplier) AS remarks,
           concat('procurement:', id::text) AS event_id
-        FROM procurement_orders WHERE user_id = ${userId}
+        FROM procurement_orders WHERE user_id = ${userId} AND round_id = ${roundId}
         UNION ALL
         SELECT date::text, CASE WHEN sack_size IS NULL THEN 'Unspecified Sacks'
           ELSE concat(sack_size, ' kg Sacks') END,
@@ -77,26 +80,25 @@ export class InventoryService {
             coalesce(sack_size::text, 'unspecified'), ' kg sacks'),
           concat('expense:', id::text)
         FROM expenses
-        WHERE user_id = ${userId} AND lower(category) = 'sacks'
+        WHERE user_id = ${userId} AND round_id = ${roundId} AND lower(category) = 'sacks'
         UNION ALL
         SELECT date::text, 'Maize'::text, 0::numeric, maize_quantity::numeric,
           'Production'::text,
           concat('Used ', maize_quantity, ' kg of Maize for production'),
           concat('production-maize:', id::text)
-        FROM production_batches WHERE user_id = ${userId}
+        FROM production_batches WHERE user_id = ${userId} AND round_id = ${roundId}
         UNION ALL
         SELECT date::text, 'Flour'::text, flour_output::numeric, 0::numeric,
           'Production'::text, concat('Produced ', flour_output, ' kg of Flour'),
           concat('production-flour:', id::text)
-        FROM production_batches WHERE user_id = ${userId}
+        FROM production_batches WHERE user_id = ${userId} AND round_id = ${roundId}
         UNION ALL
-        SELECT date::text, 'Bran (debe)'::text,
-          coalesce(bran_debe_quantity, 0)::numeric, 0::numeric,
+        SELECT date::text, 'Bran (sacks)'::text,
+          coalesce(bran_quantity, 0)::numeric, 0::numeric,
           'Production'::text,
-          concat('Produced ', coalesce(bran_debe_quantity::text, '0'),
-            ' debe of Bran (', coalesce(bran_unit, 'gunia'), ')'),
+          concat('Produced ', coalesce(bran_quantity::text, '0'), ' bran sacks'),
           concat('production-bran:', id::text)
-        FROM production_batches WHERE user_id = ${userId}
+        FROM production_batches WHERE user_id = ${userId} AND round_id = ${roundId}
         UNION ALL
         SELECT date::text, concat(sack_size, ' kg Sacks'),
           0::numeric, sack_count::numeric, 'Production'::text,
@@ -106,25 +108,23 @@ export class InventoryService {
         CROSS JOIN LATERAL (VALUES
           (5, flour_sacks_5kg), (10, flour_sacks_10kg), (25, flour_sacks_25kg)
         ) AS packaged(sack_size, sack_count)
-        WHERE user_id = ${userId} AND sack_count > 0
+        WHERE user_id = ${userId} AND round_id = ${roundId} AND sack_count > 0
         UNION ALL
         SELECT date::text,
-          CASE WHEN lower(product_type) = 'bran' AND bran_debe_quantity IS NOT NULL
-            THEN 'Bran (debe)'
-            WHEN lower(product_type) = 'bran' THEN 'Bran (legacy kg)'
+          CASE WHEN lower(product_type) = 'bran' THEN 'Bran (sacks)'
             ELSE 'Flour' END,
           0::numeric,
-          CASE WHEN lower(product_type) = 'bran' AND bran_debe_quantity IS NOT NULL
-            THEN bran_debe_quantity::numeric ELSE quantity::numeric END,
+          CASE WHEN lower(product_type) = 'bran' THEN sack_count::numeric
+            ELSE (sack_count * coalesce(sack_size, 0))::numeric END,
           'Sales'::text,
-          CASE WHEN lower(product_type) = 'bran' AND bran_debe_quantity IS NOT NULL
-            THEN concat('Sold ', coalesce(bran_unit_count::text, 'null'), ' ',
-              coalesce(bran_unit, 'null'), ' (', bran_debe_quantity,
-              ' debe) to ', coalesce(customer_name, 'Customer'))
-            ELSE concat('Sold ', quantity, ' kg to ',
+          CASE WHEN lower(product_type) = 'bran'
+            THEN concat('Sold ', sack_count, ' bran sacks to ',
+              coalesce(customer_name, 'Customer'))
+            ELSE concat('Sold ', sack_count, ' ', sack_size,
+              ' kg flour sacks (', sack_count * sack_size, ' kg) to ',
               coalesce(customer_name, 'Customer')) END,
           concat('sale:', id::text)
-        FROM sales WHERE user_id = ${userId}
+        FROM sales WHERE user_id = ${userId} AND round_id = ${roundId}
       ),
       with_balances AS (
         SELECT *, sum(quantity_in - quantity_out) OVER (
@@ -192,20 +192,21 @@ export class InventoryService {
     userId: string,
     paginationQuery: PaginationQueryDto = {},
   ): Promise<InventoryMovement[] | PaginatedResult<InventoryMovement>> {
+    const roundId = await getActiveRoundId(this.db, userId);
     const pagination = getPagination(paginationQuery);
     if (pagination) {
-      return this.getMovementPage(userId, paginationQuery, pagination);
+      return this.getMovementPage(userId, roundId, paginationQuery, pagination);
     }
 
     const [proc, prod, sal, exp] = await Promise.all([
       this.db.query.procurementOrders.findMany({
-        where: eq(procurementOrders.user_id, userId),
+        where: and(eq(procurementOrders.user_id, userId), eq(procurementOrders.round_id, roundId)),
       }),
       this.db.query.productionBatches.findMany({
-        where: eq(productionBatches.user_id, userId),
+        where: and(eq(productionBatches.user_id, userId), eq(productionBatches.round_id, roundId)),
       }),
-      this.db.query.sales.findMany({ where: eq(sales.user_id, userId) }),
-      this.db.query.expenses.findMany({ where: eq(expenses.user_id, userId) }),
+      this.db.query.sales.findMany({ where: and(eq(sales.user_id, userId), eq(sales.round_id, roundId)) }),
+      this.db.query.expenses.findMany({ where: and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId)) }),
     ]);
 
     const movements: InventoryMovement[] = [];
@@ -215,10 +216,10 @@ export class InventoryService {
       movements.push({
         date: toLocalDateString(p.delivery_date),
         item: 'Maize',
-        quantityIn: Number(p.quantity),
+        quantityIn: Number(p.quantity_of_maize) * 1000,
         quantityOut: 0,
         source: 'Procurement',
-        remarks: `Procured ${p.quantity} kg from ${p.supplier}`,
+        remarks: `Procured ${p.quantity_of_maize} tons (${Number(p.quantity_of_maize) * 1000} kg) from ${p.supplier}`,
       }),
     );
 
@@ -255,14 +256,14 @@ export class InventoryService {
         source: 'Production',
         remarks: `Produced ${p.flour_output} kg of Flour`,
       });
-      const branQuantity = Number(p.bran_debe_quantity || 0);
+      const branQuantity = Number(p.bran_quantity || 0);
       movements.push({
         date: localDate,
-        item: 'Bran (debe)',
+        item: 'Bran (sacks)',
         quantityIn: branQuantity,
         quantityOut: 0,
         source: 'Production',
-        remarks: `Produced ${p.bran_debe_quantity || 0} debe of Bran (${p.bran_unit || 'gunia'})`,
+        remarks: `Produced ${branQuantity} bran sacks`,
       });
       ([5, 10, 25] as const).forEach((size) => {
         const count = p[`flour_sacks_${size}kg`];
@@ -281,17 +282,16 @@ export class InventoryService {
     // Sales
     sal.forEach((s) => {
       const isBran = s.product_type.toLowerCase() === 'bran';
-      const quantity = isBran && s.bran_debe_quantity !== null ? Number(s.bran_debe_quantity) : Number(s.quantity || 0);
+      const quantity = isBran ? s.sack_count : s.sack_count * (s.sack_size ?? 0);
       movements.push({
         date: toLocalDateString(s.date),
-        item: isBran ? (s.bran_debe_quantity !== null ? 'Bran (debe)' : 'Bran (legacy kg)') : 'Flour',
+        item: isBran ? 'Bran (sacks)' : 'Flour',
         quantityIn: 0,
         quantityOut: quantity,
         source: 'Sales',
-        // old app referenced a non-existent `s.customer` field here; fixed to customer_name
-        remarks: isBran && s.bran_debe_quantity !== null
-          ? `Sold ${s.bran_unit_count} ${s.bran_unit} (${s.bran_debe_quantity} debe) to ${s.customer_name || 'Customer'}`
-          : `Sold ${s.quantity || 0} kg to ${s.customer_name || 'Customer'}`,
+        remarks: isBran
+          ? `Sold ${s.sack_count} bran sacks to ${s.customer_name}`
+          : `Sold ${s.sack_count} ${s.sack_size} kg flour sacks (${quantity} kg) to ${s.customer_name}`,
       });
     });
 
@@ -327,36 +327,37 @@ export class InventoryService {
   }
 
   async getDashboardSummary(userId: string, today: string) {
+    const roundId = await getActiveRoundId(this.db, userId);
     const [productionTotals] = await this.db
       .select({
         maize: sql<string>`coalesce(sum(${productionBatches.maize_quantity}), 0)::text`,
         flour: sql<string>`coalesce(sum(${productionBatches.flour_output}), 0)::text`,
-        bran: sql<string>`coalesce(sum(${productionBatches.bran_debe_quantity}), 0)::text`,
+        bran: sql<string>`coalesce(sum(${productionBatches.bran_quantity}), 0)::text`,
         sacks5: sql<string>`coalesce(sum(${productionBatches.flour_sacks_5kg}), 0)::text`,
         sacks10: sql<string>`coalesce(sum(${productionBatches.flour_sacks_10kg}), 0)::text`,
         sacks25: sql<string>`coalesce(sum(${productionBatches.flour_sacks_25kg}), 0)::text`,
       })
       .from(productionBatches)
-      .where(eq(productionBatches.user_id, userId));
+      .where(and(eq(productionBatches.user_id, userId), eq(productionBatches.round_id, roundId)));
 
     const [procurementTotals] = await this.db
       .select({
-        maize: sql<string>`coalesce(sum(${procurementOrders.quantity}), 0)::text`,
+        maize: sql<string>`coalesce(sum(${procurementOrders.quantity_of_maize} * 1000), 0)::text`,
       })
       .from(procurementOrders)
-      .where(eq(procurementOrders.user_id, userId));
+      .where(and(eq(procurementOrders.user_id, userId), eq(procurementOrders.round_id, roundId)));
 
     const [salesTotals] = await this.db
       .select({
-        flour: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'flour' then ${sales.quantity} else 0 end), 0)::text`,
-        bran: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'bran' then coalesce(${sales.bran_debe_quantity}, 0) else 0 end), 0)::text`,
+        flour: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'flour' then ${sales.sack_count} * ${sales.sack_size} else 0 end), 0)::text`,
+        bran: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'bran' then ${sales.sack_count} else 0 end), 0)::text`,
         revenueToday: sql<string>`coalesce(sum(case when ${sales.date} = ${today} then ${sales.total_amount} else 0 end), 0)::text`,
         flourSacks5: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'flour' and ${sales.sack_size} = 5 then ${sales.sack_count} else 0 end), 0)::text`,
         flourSacks10: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'flour' and ${sales.sack_size} = 10 then ${sales.sack_count} else 0 end), 0)::text`,
         flourSacks25: sql<string>`coalesce(sum(case when lower(${sales.product_type}) = 'flour' and ${sales.sack_size} = 25 then ${sales.sack_count} else 0 end), 0)::text`,
       })
       .from(sales)
-      .where(eq(sales.user_id, userId));
+      .where(and(eq(sales.user_id, userId), eq(sales.round_id, roundId)));
 
     const sackPurchases = await this.db
       .select({
@@ -367,6 +368,7 @@ export class InventoryService {
       .where(
         and(
           eq(expenses.user_id, userId),
+          eq(expenses.round_id, roundId),
           sql`lower(${expenses.category}) = 'sacks'`,
         ),
       )
@@ -407,14 +409,14 @@ export class InventoryService {
       stats: {
         totalMaize,
         totalFlour,
-        totalBran: totalBran / 7,
+        totalBran,
         efficiency: totalMaize > 0 ? ((totalFlour / totalMaize) * 100).toFixed(2) : 0,
         totalRevenue: Number(salesTotals.revenueToday),
       },
       stocks: {
         maize: Number(procurementTotals.maize) - totalMaize,
         flour: totalFlour - Number(salesTotals.flour),
-        bran: totalBran / 7 - branSold / 7,
+        bran: totalBran - branSold,
         sacks5kg: (purchasedBySize.get(5) ?? 0) - sacks5,
         sacks10kg: (purchasedBySize.get(10) ?? 0) - sacks10,
         sacks25kg: (purchasedBySize.get(25) ?? 0) - sacks25,
@@ -424,8 +426,10 @@ export class InventoryService {
   }
 
   async getRecentActivities(userId: string) {
+    const roundId = await getActiveRoundId(this.db, userId);
     const page = await this.getMovementPage(
       userId,
+      roundId,
       { page: 1, limit: 6 },
       { page: 1, limit: 6, offset: 0 },
       true,
