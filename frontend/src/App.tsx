@@ -15,6 +15,7 @@ import Reports from './dashboardpages/Reports';
 import Expenses from './dashboardpages/Expenses';
 import Analytics from './dashboardpages/Analytics';
 import Settings from './dashboardpages/Settings';
+import OperationalCosts from './dashboardpages/OperationalCosts';
 
 // protecting routes
 import { AuthProvider } from './context/AuthContext';
@@ -105,7 +106,16 @@ export default function App() {
             }
           />
 
-         
+          <Route
+            path="/operational-costs"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <OperationalCosts />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
 
           <Route
             path="/reports"
