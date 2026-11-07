@@ -62,7 +62,7 @@ export const openApiDocument = {
   info: {
     title: 'Maize Inventory System API',
     description:
-      'API for authentication, sales, expenses, procurement, production, inventory, and reports. Protected routes use JWT bearer authentication.',
+      'API for authentication, sales, expenses, procurement, production, inventory, reports, and account-scoped operation rounds. Protected routes use JWT bearer authentication.',
     version: '4.0.0',
   },
   servers: [{ url: '/api/v4' }],
@@ -73,9 +73,8 @@ export const openApiDocument = {
     schemas: {
       Signup: {
         type: 'object',
-        required: ['name', 'username', 'email', 'password'],
+        required: ['username', 'email', 'password'],
         properties: {
-          name: { type: 'string' },
           username: { type: 'string' },
           email: { type: 'string', format: 'email' },
           password: { type: 'string', minLength: 6 },
@@ -99,51 +98,65 @@ export const openApiDocument = {
       Sale: {
         type: 'object',
         required: [
-          'customer_name', 'customer_contact', 'product_type', 'quantity',
-          'price_per_kg', 'delivery_cost', 'delivery_address',
-          'payment_method', 'total_amount', 'date',
+          'customer_name', 'customer_contact', 'product_type',
+          'sack_count', 'price_per_sack', 'delivery_cost', 'delivery_address', 'date',
         ],
         properties: {
           customer_name: { type: 'string' },
           customer_contact: { type: 'string' },
           product_type: { type: 'string', enum: ['flour', 'bran'] },
-          quantity: { type: 'number' },
           sack_count: { type: 'integer' },
-          sack_size: { type: 'integer', enum: [5, 10, 25] },
-          bran_unit_count: { type: 'number' },
-          bran_unit: { type: 'string', enum: ['gunia'] },
-          price_per_kg: { type: 'number' },
+          sack_size: {
+            type: 'integer',
+            enum: [5, 10, 25],
+            description: 'Required for flour; omitted for bran.',
+          },
+          price_per_sack: { type: 'number', exclusiveMinimum: 0 },
           delivery_cost: { type: 'number' },
           delivery_address: { type: 'string' },
-          payment_method: { type: 'string' },
-          total_amount: { type: 'number' },
           date: { type: 'string', format: 'date' },
         },
       },
       Expense: {
         type: 'object',
-        required: ['date', 'category', 'amount'],
+        required: ['date', 'category'],
         properties: {
           date: { type: 'string', format: 'date' },
           category: { type: 'string' },
-          amount: { type: 'number' },
+          total_amount: { type: 'number', description: 'Required unless total is computed from unit_value and unit_cost for sacks or water.' },
           unit_value: { type: 'number' },
           unit_cost: { type: 'number' },
           sack_size: { type: 'integer', enum: [5, 10, 25] },
-          paid_by: { type: 'string' },
-          method: { type: 'string' },
           notes: { type: 'string' },
+        },
+        OperationalCost: {
+          type: 'object',
+          required: ['date', 'operation', 'starting_units', 'remaining_units', 'total_amount'],
+          properties: {
+            date: { type: 'string', format: 'date' },
+            operation: { type: 'string', maxLength: 255 },
+            starting_units: { type: 'number', minimum: 0 },
+            remaining_units: { type: 'number', minimum: 0 },
+            total_amount: { type: 'number', minimum: 0, description: 'Actual cost consumed by this operation.' },
+            notes: { type: 'string' },
+          },
         },
       },
       Procurement: {
         type: 'object',
-        required: ['supplier', 'quantity_tons', 'price_per_kg', 'transport_cost', 'total_cost', 'delivery_date'],
+        required: ['supplier', 'supplier_location', 'supplier_phone', 'quantity_tons', 'maize_purchase_cost', 'transport_cost', 'delivery_date'],
         properties: {
           supplier: { type: 'string' },
+          supplier_location: { type: 'string' },
+          supplier_phone: { type: 'string' },
           quantity_tons: { type: 'number' },
-          price_per_kg: { type: 'number' },
+          maize_purchase_cost: { type: 'number' },
           transport_cost: { type: 'number' },
-          total_cost: { type: 'number' },
+          collection_labour: { type: 'number' },
+          loading_labour: { type: 'number' },
+          unloading_labour: { type: 'number' },
+          transport_tax: { type: 'number' },
+          rural_tax: { type: 'number' },
           delivery_date: { type: 'string', format: 'date' },
         },
       },
@@ -155,8 +168,7 @@ export const openApiDocument = {
           flour_sacks_5kg: { type: 'integer' },
           flour_sacks_10kg: { type: 'integer' },
           flour_sacks_25kg: { type: 'integer' },
-          bran_unit_count: { type: 'number' },
-          bran_unit: { type: 'string', enum: ['gunia'] },
+          bran_quantity: { type: 'number', description: 'Produced bran sack count.' },
           date: { type: 'string', format: 'date' },
         },
       },
@@ -177,7 +189,24 @@ export const openApiDocument = {
           type: { type: 'string', enum: ['production', 'sales', 'procurement', 'financial'] },
         },
       },
-      Profile: { type: 'object', additionalProperties: true, description: 'UpdateProfileDto fields.' },
+      RoundName: {
+        type: 'object',
+        required: ['name'],
+        properties: { name: { type: 'string', minLength: 1, maxLength: 100 } },
+      },
+      DeleteRound: {
+        type: 'object',
+        required: ['confirmName'],
+        properties: { confirmName: { type: 'string', minLength: 1, maxLength: 100 } },
+      },
+      Profile: {
+        type: 'object',
+        required: ['username', 'email'],
+        properties: {
+          username: { type: 'string' },
+          email: { type: 'string', format: 'email' },
+        },
+      },
       ChangePassword: { type: 'object', additionalProperties: true, description: 'ChangePasswordDto fields.' },
     },
   },
@@ -207,7 +236,11 @@ export const openApiDocument = {
         summary: 'List sales',
         description: 'Without pagination parameters, returns the legacy array response.',
         security: authenticated,
-        parameters: pageParameters,
+        parameters: [
+          ...pageParameters,
+          { name: 'product_type', in: 'query', required: false, schema: { type: 'string', enum: ['All', 'flour', 'bran'] } },
+          { name: 'sack_size', in: 'query', required: false, schema: { type: 'integer', enum: [5, 10, 25] } },
+        ],
         responses: { '200': { description: 'Sales records', content: { 'application/json': { schema: listResponse } } } },
       },
       post: { summary: 'Create a sale', security: authenticated, requestBody: jsonBody('Sale'), responses: ok('Sale created') },
@@ -222,6 +255,13 @@ export const openApiDocument = {
         responses: { '200': { description: 'Sale deleted' }, '404': { description: 'Sale not found' } },
       },
     },
+    '/sales/summary': {
+      get: {
+        summary: 'Get round sales totals by flour sack size and bran',
+        security: authenticated,
+        responses: { '200': { description: 'Sales totals by product package' } },
+      },
+    },
     '/expenses': {
       get: {
         summary: 'List expenses', security: authenticated,
@@ -232,8 +272,43 @@ export const openApiDocument = {
     },
     '/expenses/summary': {
       get: {
-        summary: 'Get all-time expense totals grouped by category', security: authenticated,
+        summary: 'Get active-round expense totals grouped by category', security: authenticated,
         responses: { '200': { description: 'Expense totals grouped by category' } },
+      },
+      '/operational-costs': {
+        get: {
+          summary: 'List electricity operational cost records in the active round',
+          security: authenticated,
+          responses: { '200': { description: 'Operational cost records' } },
+        },
+        post: {
+          summary: 'Record electricity units consumed and the actual operation cost',
+          security: authenticated,
+          requestBody: jsonBody('OperationalCost'),
+          responses: { ...ok('Operational cost recorded'), '400': { description: 'Electricity readings do not match the round balance' } },
+        },
+      },
+      '/operational-costs/summary': {
+        get: {
+          summary: 'Summarize purchased, used, and remaining electricity units and operational cost',
+          security: authenticated,
+          responses: { '200': { description: 'Electricity balance and operation cost totals' } },
+        },
+      },
+      '/operational-costs/{id}': {
+        put: {
+          summary: 'Update an electricity operational cost record',
+          security: authenticated,
+          parameters: [uuidParameter],
+          requestBody: jsonBody('OperationalCost'),
+          responses: { ...ok('Operational cost updated'), '404': { description: 'Record not found' } },
+        },
+        delete: {
+          summary: 'Delete an electricity operational cost record',
+          security: authenticated,
+          parameters: [uuidParameter],
+          responses: { ...ok('Operational cost deleted'), '400': { description: 'Later readings depend on this record' } },
+        },
       },
     },
     '/expenses/{id}': {
@@ -256,6 +331,13 @@ export const openApiDocument = {
         responses: { '200': { description: 'Procurement records', content: { 'application/json': { schema: listResponse } } } },
       },
       post: { summary: 'Create a procurement order', security: authenticated, requestBody: jsonBody('Procurement'), responses: ok('Order created') },
+    },
+    '/procurement/summary': {
+      get: {
+        summary: 'Get procurement totals and acquisition costs for the active round',
+        security: authenticated,
+        responses: { '200': { description: 'Round procurement summary' } },
+      },
     },
     '/procurement/{id}': {
       put: {
@@ -283,6 +365,13 @@ export const openApiDocument = {
           { name: 'to', in: 'query', required: true, schema: { type: 'string', format: 'date' } },
         ],
         responses: { '200': { description: 'Daily flour and bran totals for the selected range' } },
+      },
+    },
+    '/production/packaging-breakdown': {
+      get: {
+        summary: 'Get round flour packaging counts and weights',
+        security: authenticated,
+        responses: { '200': { description: 'Counts and total weight for 5 kg, 10 kg, and 25 kg flour packages' } },
       },
     },
     '/production/{id}': {
@@ -347,6 +436,44 @@ export const openApiDocument = {
       post: {
         summary: 'Archive account data and reset records', security: authenticated,
         responses: { '200': { description: 'CSV archive' } },
+      },
+    },
+    '/rounds': {
+      get: {
+        summary: 'List operation rounds for the authenticated account',
+        security: authenticated,
+        responses: { '200': { description: 'Operation rounds and active round' } },
+      },
+      post: {
+        summary: 'Create a new operation round and carry forward unused sacks by size',
+        security: authenticated,
+        requestBody: jsonBody('RoundName'),
+        responses: ok('Round created'),
+      },
+    },
+    '/rounds/{id}/activate': {
+      post: {
+        summary: 'Switch the active operation round',
+        security: authenticated,
+        parameters: [uuidParameter],
+        responses: ok('Active round changed'),
+      },
+    },
+    '/rounds/{id}/report': {
+      get: {
+        summary: 'Download a complete CSV report for a round',
+        security: authenticated,
+        parameters: [uuidParameter],
+        responses: { '200': { description: 'CSV report', content: { 'text/csv': { schema: { type: 'string' } } } } },
+      },
+    },
+    '/rounds/{id}': {
+      delete: {
+        summary: 'Delete an operation round after confirming its exact name',
+        security: authenticated,
+        parameters: [uuidParameter],
+        requestBody: jsonBody('DeleteRound'),
+        responses: { ...ok('Round and associated records deleted'), '404': { description: 'Round not found' } },
       },
     },
   },
