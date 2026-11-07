@@ -7,6 +7,11 @@ The repository contains a React frontend and a NestJS API backed by PostgreSQL a
 ## Features
 
 - Track maize procurement, milling batches, flour and bran sales, and expenses.
+- Keep operational records isolated across named rounds and switch the active round from the dashboard header.
+- Export a round report before deleting it; deletion requires typing the exact round name.
+- Enforce round-specific maize, packaged-flour, and bran stock checks when recording production and sales.
+- Filter sales by product and flour sack size, with sales totals grouped by package size and bran.
+- Show procurement acquisition-cost summaries and production packaging totals.
 - View current stock, stock movement history, and production balances.
 - Review dashboard totals, including sales revenue for today.
 - Export business reports and CSV data.
@@ -36,7 +41,7 @@ The API and frontend run in separate terminals.
 ### 1. Configure and start the backend
 
 ```powershell
-cd maize-inventory-system\backend
+cd backend
 npm ci
 ```
 
@@ -70,7 +75,7 @@ The API base URL is `http://localhost:3000/api/v4`.
 In a second terminal:
 
 ```powershell
-cd maize-inventory-system\frontend
+cd frontend
 npm ci
 ```
 
@@ -113,7 +118,22 @@ With the backend running:
 - Swagger UI: [http://localhost:3000/api/v4/docs](http://localhost:3000/api/v4/docs)
 - OpenAPI JSON: [http://localhost:3000/api/v4/openapi.json](http://localhost:3000/api/v4/openapi.json)
 
-Swagger UI loads its assets from a CDN and therefore requires an internet connection. See the [backend README](./maize-inventory-system/backend/README.md) for backend commands and API details.
+Swagger UI loads its assets from a CDN and therefore requires an internet connection. See the [backend README](./backend/README.md) for backend commands and API details.
+
+## CI/CD
+
+GitHub Actions validates each app when a pull request targeting `main` changes that app, and again on pushes to `main`. Frontend CI runs `npm ci` and `npm run build`; backend CI runs `npm ci`, the Jest unit tests, and `npm run build`. Successful pushes to `main` deploy the frontend to Vercel and the backend to Render using Node.js 22.
+
+Configure these GitHub Actions repository secrets before merging changes that trigger production deployment:
+
+| Secret | Used by | Value |
+| --- | --- | --- |
+| `VERCEL_TOKEN` | Frontend deployment | Vercel access token |
+| `VERCEL_ORG_ID` | Frontend deployment | Vercel team or account ID |
+| `VERCEL_PROJECT_ID` | Frontend deployment | Vercel project ID |
+| `RENDER_DEPLOY_HOOK_URL` | Backend deployment | Deploy hook URL for the Render API service |
+
+Set the Vercel project's root directory to `frontend`, and configure `VITE_API_URL` in the Vercel production environment to the deployed Render API URL ending in `/api/v4`. Obtain the Vercel organization and project IDs by linking the local frontend with the Vercel CLI; the IDs are saved in `frontend/.vercel/project.json`. Disable Vercel's automatic Git deployments if this workflow is responsible for production releases, to avoid duplicate deployments. The [Render Blueprint](./render.yaml) defines the backend build, start, health-check, and required environment settings. Set its `DATABASE_URL`, `JWT_ACCESS_SECRET`, and `CLIENT_URL` values in Render. Deploy hooks should only be created for trusted repositories because anyone holding the URL can trigger a deployment.
 
 ## Build and tests
 
@@ -122,7 +142,7 @@ Run commands from the relevant project directory.
 Backend:
 
 ```powershell
-cd maize-inventory-system\backend
+cd backend
 npm run build
 npm test -- --runInBand
 ```
@@ -130,7 +150,7 @@ npm test -- --runInBand
 Frontend (the build includes a TypeScript check):
 
 ```powershell
-cd maize-inventory-system\frontend
+cd frontend
 npm run build
 ```
 

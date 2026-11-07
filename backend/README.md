@@ -80,10 +80,13 @@ All paths below are relative to `/api/v4`.
 | `/auth/forgot-password`, `/auth/reset-password/{token}` | `POST` | Password recovery |
 | `/sales`, `/sales/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Sales records |
 | `/expenses`, `/expenses/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Expense records |
-| `/expenses/summary` | `GET` | All-time expense totals grouped by category |
+| `/expenses/summary` | `GET` | Active-round expense totals grouped by category |
 | `/procurement`, `/procurement/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Procurement orders |
+| `/procurement/summary` | `GET` | Active-round acquisition totals |
 | `/production`, `/production/{id}` | `GET`, `POST`, `PUT`, `DELETE` | Production batches |
 | `/production/chart-data` | `GET` | Daily production totals for a date range |
+| `/production/packaging-breakdown` | `GET` | Active-round packaged flour counts and weights |
+| `/rounds` and `/rounds/{id}` | `GET`, `POST`, `DELETE` | Create, select, report, and confirmed round deletion |
 | `/inventory-movements` | `GET` | Inventory history, filters, and running balances |
 | `/recent-activities` | `GET` | Six most recent inventory activities |
 | `/dashboard-summary` | `GET` | Aggregated dashboard totals and current stock |
@@ -92,6 +95,8 @@ All paths below are relative to `/api/v4`.
 | `/contact` | `POST` | Submit a public contact message |
 
 The OpenAPI document is the source of truth for request fields, response descriptions, and authentication requirements.
+
+Operational records are scoped to one active round per account. The `/rounds` endpoints list, create, and activate rounds, export a round report, and delete a round only with a matching name confirmation. Existing records are migrated to `Round 1`.
 
 ## Pagination
 
@@ -123,6 +128,18 @@ Production chart data accepts `from` and `to` dates in `YYYY-MM-DD` format. The 
 | `npm test -- --runInBand` | Run backend unit tests |
 | `npm run test:cov` | Run tests with coverage |
 | `npm run lint` | Run ESLint (the configured script applies fixes) |
+
+## CI/CD
+
+The [`backend-ci-cd.yml`](../.github/workflows/backend-ci-cd.yml) workflow runs the backend unit tests and build for pull requests targeting `main` and pushes to `main` that modify backend files, the Render Blueprint, or the workflow itself. A successful push to `main` triggers the Render deploy hook.
+
+To enable deployment:
+
+1. Create the Render service from the repository's [`render.yaml`](../render.yaml) Blueprint.
+2. Set `DATABASE_URL`, `JWT_ACCESS_SECRET`, and `CLIENT_URL` in the Render service environment.
+3. Create a Render deploy hook for the service and save its URL as the GitHub Actions secret `RENDER_DEPLOY_HOOK_URL`.
+
+Do not put production credentials in the workflow. CI uses non-production placeholder environment values; it does not connect to a database.
 
 ## Modules
 
