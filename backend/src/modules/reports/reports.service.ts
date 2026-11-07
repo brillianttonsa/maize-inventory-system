@@ -6,6 +6,8 @@ import {
   sales,
   procurementOrders,
   expenses,
+  operationalCosts,
+  roundSackOpeningBalances,
   type ProductionBatch,
   type Sale,
 } from '../../db/schema';
@@ -246,16 +248,18 @@ export class ReportsService {
   // ---------- CSV report: Financial ----------
   private async generateFinancialReport(userId: string) {
     const roundId = await getActiveRoundId(this.db, userId);
-    const [salesRows, expenseRows, orders] = await Promise.all([
+    const [salesRows, expenseRows, orders, costRows] = await Promise.all([
       this.db.query.sales.findMany({ where: and(eq(sales.user_id, userId), eq(sales.round_id, roundId)) }),
       this.db.query.expenses.findMany({ where: and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId)) }),
       this.db.query.procurementOrders.findMany({ where: and(eq(procurementOrders.user_id, userId), eq(procurementOrders.round_id, roundId)) }),
+      this.db.query.operationalCosts.findMany({ where: and(eq(operationalCosts.user_id, userId), eq(operationalCosts.round_id, roundId)) }),
     ]);
 
     const totalRevenue = salesRows.reduce((s, r) => s + Number(r.total_amount || 0), 0);
     const totalExpenses = expenseRows.reduce((s, e) => s + Number(e.total_amount || 0), 0);
     const totalProcurementCost = orders.reduce((s, o) => s + Number(o.total_cost || 0), 0);
     const totalCosts = totalExpenses + totalProcurementCost;
+    const totalActualOperationalCost = costRows.reduce((sum, item) => sum + Number(item.total_amount), 0);
     const profit = totalRevenue - totalCosts;
     const profitMargin = totalRevenue > 0 ? ((profit / totalRevenue) * 100).toFixed(2) : '0';
 
@@ -275,6 +279,7 @@ export class ReportsService {
       totalExpenses,
       totalProcurementCost,
       totalCosts,
+      totalActualOperationalCost,
       profit,
       profitMargin: `${profitMargin}%`,
       expenseByCategory,
@@ -295,6 +300,7 @@ export class ReportsService {
       'Category,Amount',
       ...Object.entries(expenseByCategory).map(([cat, amount]) => `${cat},${amount}`),
       `Total Operating Expenses,${totalExpenses}`,
+      `Separately Recorded Operational Costs,${totalActualOperationalCost}`,
       '',
       'PROCUREMENT',
       `Total Procurement Cost,${totalProcurementCost}`,
@@ -337,11 +343,13 @@ export class ReportsService {
   // ---------- Comprehensive CSV: all transactions and summary reviews ----------
   async generateComprehensiveReport(userId: string) {
     const roundId = await getActiveRoundId(this.db, userId);
-    const [batches, salesRows, orders, expenseRows] = await Promise.all([
+    const [batches, salesRows, orders, expenseRows, costRows, openingSacks] = await Promise.all([
       this.db.query.productionBatches.findMany({ where: and(eq(productionBatches.user_id, userId), eq(productionBatches.round_id, roundId)) }),
       this.db.query.sales.findMany({ where: and(eq(sales.user_id, userId), eq(sales.round_id, roundId)) }),
       this.db.query.procurementOrders.findMany({ where: and(eq(procurementOrders.user_id, userId), eq(procurementOrders.round_id, roundId)) }),
       this.db.query.expenses.findMany({ where: and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId)) }),
+      this.db.query.operationalCosts.findMany({ where: and(eq(operationalCosts.user_id, userId), eq(operationalCosts.round_id, roundId)) }),
+      this.db.query.roundSackOpeningBalances.findMany({ where: and(eq(roundSackOpeningBalances.user_id, userId), eq(roundSackOpeningBalances.round_id, roundId)) }),
     ]);
 
     const productionSummary: Record<string, any> = {
@@ -400,6 +408,10 @@ export class ReportsService {
       totalExpenses: expenseRows.reduce((s, e) => s + Number(e.total_amount || 0), 0),
       totalCount: expenseRows.length,
     };
+    const operationalCostSummary = {
+      unitsUsed: costRows.reduce((sum, item) => sum + Number(item.units_used), 0),
+      totalAmount: costRows.reduce((sum, item) => sum + Number(item.total_amount), 0),
+    };
     const expenseByCategory: Record<string, number> = {};
     expenseRows.forEach((exp) => {
       expenseByCategory[exp.category] = (expenseByCategory[exp.category] || 0) + Number(exp.total_amount || 0);
@@ -439,6 +451,8 @@ export class ReportsService {
       { Category: 'Procurement', Metric: 'Total Orders', Value: procurementSummary.totalOrders },
       { Category: 'Procurement', Metric: 'Maize Purchased (tons)', Value: procurementSummary.totalQuantityTons },
       { Category: 'Expenses', Metric: 'Number of Transactions', Value: expensesSummary.totalCount },
+      { Category: 'Operational Costs', Metric: 'Electricity Units Used', Value: operationalCostSummary.unitsUsed },
+      { Category: 'Operational Costs', Metric: 'Actual Electricity Operational Cost (TSh)', Value: operationalCostSummary.totalAmount },
     ];
 
     const csv = [
@@ -475,6 +489,22 @@ export class ReportsService {
         Notes: expense.notes,
       })), ['Date', 'Category', 'Quantity / Units', 'Unit Cost (TSh)', 'Sack Size (kg)', 'Total Amount (TSh)', 'Notes']),
       '',
+      section('ROUND OPENING SACK BALANCES', openingSacks.map((opening) => ({
+        'Sack Size (kg)': opening.sack_size,
+        'Quantity Carried': opening.quantity,
+        'Source Round': opening.source_round_name,
+      })), ['Sack Size (kg)', 'Quantity Carried', 'Source Round']),
+      '',
+      section('ELECTRICITY OPERATIONAL COSTS', costRows.map((cost) => ({
+        Date: formatReportDate(cost.date),
+        Operation: cost.operation,
+        'Units at Start': cost.starting_units,
+        'Units Used': cost.units_used,
+        'Units Remaining': cost.remaining_units,
+        'Actual Cost (TSh)': cost.total_amount,
+        Notes: cost.notes,
+      })), ['Date', 'Operation', 'Units at Start', 'Units Used', 'Units Remaining', 'Actual Cost (TSh)', 'Notes']),
+      '',
       section('SACK PRODUCTION VS SALES', sackBalances.map((sack) => ({
         'Sack Size': `${sack.size} kg`, Produced: sack.produced, Sold: sack.sold, Remaining: sack.remaining,
       })), ['Sack Size', 'Produced', 'Sold', 'Remaining']),
@@ -499,7 +529,9 @@ export class ReportsService {
 
     await this.db.transaction(async (tx) => {
       await tx.delete(sales).where(and(eq(sales.user_id, userId), eq(sales.round_id, roundId)));
+      await tx.delete(operationalCosts).where(and(eq(operationalCosts.user_id, userId), eq(operationalCosts.round_id, roundId)));
       await tx.delete(expenses).where(and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId)));
+      await tx.delete(roundSackOpeningBalances).where(and(eq(roundSackOpeningBalances.user_id, userId), eq(roundSackOpeningBalances.round_id, roundId)));
       await tx.delete(productionBatches).where(and(eq(productionBatches.user_id, userId), eq(productionBatches.round_id, roundId)));
       await tx.delete(procurementOrders).where(and(eq(procurementOrders.user_id, userId), eq(procurementOrders.round_id, roundId)));
     });

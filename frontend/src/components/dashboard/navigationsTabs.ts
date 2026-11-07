@@ -8,6 +8,7 @@ import {
   Truck,
   Users,
   Banknote,
+  Zap,
   LogOut,
   Brain,
   type LucideIcon,
@@ -26,8 +27,9 @@ export const navigationItems: NavigationItem[] = [
   { name: 'Production', href: '/production', icon: Factory },
   { name: 'Sales', href: '/sales', icon: Users },
   { name: 'Expenses', href: '/expenses', icon: Banknote },
+  { name: 'Operational Costs', href: '/operational-costs', icon: Zap },
   { name: 'Analytics', href: '/analytics', icon: TrendingUp },
   { name: 'Reports', href: '/reports', icon: Paperclip },
   { name: 'Settings', href: '/settings', icon: Settings },
-  { name: 'Logout', href: '/login', icon: LogOut },
+  { name: 'Logout', href: '/', icon: LogOut },
 ];

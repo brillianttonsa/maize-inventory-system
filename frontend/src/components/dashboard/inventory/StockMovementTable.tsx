@@ -56,6 +56,7 @@ export default function StockMovementTable() {
             <option value="5 kg Sacks">5 kg Sacks</option>
             <option value="10 kg Sacks">10 kg Sacks</option>
             <option value="25 kg Sacks">25 kg Sacks</option>
+            <option value="Electricity Units">Electricity Units</option>
             <option value="Unspecified Sacks">Unspecified Sacks (legacy)</option>
           </select>
 
@@ -69,6 +70,8 @@ export default function StockMovementTable() {
             <option value="Production">Production</option>
             <option value="Sales">Sales</option>
             <option value="Expense">Expense</option>
+            <option value="Round carry-over">Round carry-over</option>
+            <option value="Operational Cost">Operational Cost</option>
           </select>
         </div>
 

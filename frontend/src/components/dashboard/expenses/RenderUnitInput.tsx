@@ -18,7 +18,7 @@ export const RenderUnitInput = ({ formData, handleChange }: RenderUnitInputProps
     labelText = 'Number of Sacks';
   } else if (category.toLowerCase().includes('electricity')) {
     unitName = 'units';
-    labelText = 'Electricity Units (kWh)';
+    labelText = 'Electricity Units Purchased';
   }
 
   if (unitName) {
@@ -28,7 +28,8 @@ export const RenderUnitInput = ({ formData, handleChange }: RenderUnitInputProps
 
         <input
           type="number"
-          step="any"
+          min={category.toLowerCase().includes('electricity') ? '0.01' : '0'}
+          step={category.toLowerCase().includes('sacks') ? '1' : 'any'}
           name="unitValue"
           value={formData.unitValue}
           onChange={handleChange}

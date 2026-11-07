@@ -5,4 +5,5 @@ export const COLORS: Record<string, string> = {
   sacks5kg: '#10B981',
   sacks10kg: '#059669',
   sacks25kg: '#0F766E',
+  electricityUnits: '#EAB308',
 };

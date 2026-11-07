@@ -13,6 +13,10 @@ export const queryKeys = {
       ['expenses', 'list', page, limit, category] as const,
     summary: ['expenses', 'summary'] as const,
   },
+  operationalCosts: {
+    all: ['operational-costs'] as const,
+    summary: ['operational-costs', 'summary'] as const,
+  },
   procurement: {
     all: ['procurement'] as const,
     list: ['procurement', 'list'] as const,
@@ -51,4 +55,5 @@ export const invalidateRecordQueries = (
     queryClient.invalidateQueries({ queryKey: ['inventory', 'summary'] }),
     queryClient.invalidateQueries({ queryKey: queryKeys.dashboard.all }),
     queryClient.invalidateQueries({ queryKey: queryKeys.activities.recent }),
+    queryClient.invalidateQueries({ queryKey: queryKeys.operationalCosts.all }),
   ]);

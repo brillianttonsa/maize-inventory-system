@@ -8,11 +8,15 @@ export interface OperationRound {
   is_active: boolean;
 }
 
+export interface RoundCreateResponse extends OperationRound {
+  carried_sacks: Array<{ sack_size: 5 | 10 | 25; quantity: number }>;
+}
+
 export const roundsService = {
   getAll: async (): Promise<OperationRound[]> =>
     (await api.get<OperationRound[]>('/rounds')).data,
-  create: async (name: string): Promise<OperationRound> =>
-    (await api.post<OperationRound>('/rounds', { name })).data,
+  create: async (name: string): Promise<RoundCreateResponse> =>
+    (await api.post<RoundCreateResponse>('/rounds', { name })).data,
   activate: async (id: string): Promise<OperationRound> =>
     (await api.post<OperationRound>(`/rounds/${id}/activate`)).data,
   downloadReport: async (round: OperationRound): Promise<void> => {

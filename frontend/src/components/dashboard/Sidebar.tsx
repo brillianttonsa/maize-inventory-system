@@ -1,11 +1,19 @@
 import { useState, type ReactNode } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { Link, useLocation } from 'react-router-dom';
 import { Wheat, Menu, X } from 'lucide-react';
 import { navigationItems } from './navigationsTabs';
+import RoundSwitcher from './RoundSwitcher';
+import { operationRoundsQueryKey, roundsService } from '../../services/roundsService';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const roundsQuery = useQuery({
+    queryKey: operationRoundsQueryKey,
+    queryFn: roundsService.getAll,
+  });
+  const activeRoundId = roundsQuery.data?.find((round) => round.is_active)?.id;
 
   const currentPage = navigationItems.find((item) => item.href === location.pathname);
   const pageTitle = currentPage ? currentPage.name : 'MFMS System';
@@ -29,6 +37,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               {pageTitle}
             </h2>
           </div>
+          <RoundSwitcher />
         </div>
       </header>
 
@@ -89,7 +98,9 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </aside>
 
-        <main className="flex-1 overflow-y-auto p-6 md:ml-64">{children}</main>
+        <main className="flex-1 overflow-y-auto p-6 md:ml-64">
+          <div key={activeRoundId}>{children}</div>
+        </main>
       </div>
     </div>
   );

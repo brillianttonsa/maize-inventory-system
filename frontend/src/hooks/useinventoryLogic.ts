@@ -23,12 +23,13 @@ export default function useInventoryHook() {
     sacks5kg: 0,
     sacks10kg: 0,
     sacks25kg: 0,
+    electricityUnits: 0,
   };
 
   const stockLevels: StockLevel[] = useMemo(
     () =>
       Object.keys(currentStocks).map((k) => ({
-        name: k === 'sacks5kg' ? '5 kg Sacks' : k === 'sacks10kg' ? '10 kg Sacks' : k === 'sacks25kg' ? '25 kg Sacks' : k.charAt(0).toUpperCase() + k.slice(1),
+        name: k === 'sacks5kg' ? '5 kg Sacks' : k === 'sacks10kg' ? '10 kg Sacks' : k === 'sacks25kg' ? '25 kg Sacks' : k === 'electricityUnits' ? 'Electricity Units' : k.charAt(0).toUpperCase() + k.slice(1),
         value: currentStocks[k as keyof typeof currentStocks],
         color: COLORS[k],
       })),

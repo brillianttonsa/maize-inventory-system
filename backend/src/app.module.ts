@@ -13,6 +13,7 @@ import { SettingsModule } from './modules/settings/settings.module';
 import { InventoryModule } from './modules/inventory/inventory.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { RoundsModule } from './modules/rounds/rounds.module';
+import { OperationalCostsModule } from './modules/operational-costs/operational-costs.module';
 
 @Module({
   imports: [
@@ -27,6 +28,7 @@ import { RoundsModule } from './modules/rounds/rounds.module';
     InventoryModule,
     ReportsModule,
     RoundsModule,
+    OperationalCostsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

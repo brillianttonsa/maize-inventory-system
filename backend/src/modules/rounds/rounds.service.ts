@@ -5,15 +5,18 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
-import { and, asc, eq, ne } from 'drizzle-orm';
+import { and, asc, eq, ne, sql } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
 import {
   expenses,
+  operationalCosts,
   operationRounds,
   procurementOrders,
   productionBatches,
+  roundSackOpeningBalances,
   sales,
 } from '../../db/schema';
+import { calculateSackCarryover } from './sack-carryover';
 
 function csvCell(value: unknown): string {
   const text = value instanceof Date ? value.toISOString() : String(value ?? '');
@@ -49,11 +52,83 @@ export class RoundsService {
     const cleanName = name.trim();
     if (!cleanName) throw new BadRequestException('Round name is required.');
     try {
-      const [round] = await this.db
-        .insert(operationRounds)
-        .values({ user_id: userId, name: cleanName })
-        .returning();
-      return round;
+      return await this.db.transaction(async (tx) => {
+        const sourceRound = await tx.query.operationRounds.findFirst({
+          where: and(eq(operationRounds.user_id, userId), eq(operationRounds.is_active, true)),
+        });
+        const [round] = await tx
+          .insert(operationRounds)
+          .values({ user_id: userId, name: cleanName })
+          .returning();
+
+        let carriedSacks: Array<{ sack_size: number; quantity: number }> = [];
+        if (sourceRound) {
+          const [openingRows, purchaseRows, productionRows] = await Promise.all([
+            tx
+              .select({
+                size: roundSackOpeningBalances.sack_size,
+                quantity: sql<string>`coalesce(sum(${roundSackOpeningBalances.quantity}), 0)::text`,
+              })
+              .from(roundSackOpeningBalances)
+              .where(and(
+                eq(roundSackOpeningBalances.user_id, userId),
+                eq(roundSackOpeningBalances.round_id, sourceRound.id),
+              ))
+              .groupBy(roundSackOpeningBalances.sack_size),
+            tx
+              .select({
+                size: expenses.sack_size,
+                quantity: sql<string>`coalesce(sum(${expenses.unit_value}), 0)::text`,
+              })
+              .from(expenses)
+              .where(and(
+                eq(expenses.user_id, userId),
+                eq(expenses.round_id, sourceRound.id),
+                sql`lower(${expenses.category}) = 'sacks'`,
+              ))
+              .groupBy(expenses.sack_size),
+            tx
+              .select({
+                sacks5: sql<string>`coalesce(sum(${productionBatches.flour_sacks_5kg}), 0)::text`,
+                sacks10: sql<string>`coalesce(sum(${productionBatches.flour_sacks_10kg}), 0)::text`,
+                sacks25: sql<string>`coalesce(sum(${productionBatches.flour_sacks_25kg}), 0)::text`,
+              })
+              .from(productionBatches)
+              .where(and(
+                eq(productionBatches.user_id, userId),
+                eq(productionBatches.round_id, sourceRound.id),
+              )),
+          ]);
+          const openingMap = new Map(openingRows.map((row) => [row.size, Number(row.quantity)]));
+          const purchasedMap = new Map(purchaseRows.map((row) => [row.size, Number(row.quantity)]));
+          carriedSacks = calculateSackCarryover(
+            {
+              5: openingMap.get(5) ?? 0,
+              10: openingMap.get(10) ?? 0,
+              25: openingMap.get(25) ?? 0,
+            },
+            {
+              5: purchasedMap.get(5) ?? 0,
+              10: purchasedMap.get(10) ?? 0,
+              25: purchasedMap.get(25) ?? 0,
+            },
+            { 5: Number(productionRows[0].sacks5), 10: Number(productionRows[0].sacks10), 25: Number(productionRows[0].sacks25) },
+          );
+
+          if (carriedSacks.length > 0) {
+            await tx.insert(roundSackOpeningBalances).values(
+              carriedSacks.map((item) => ({
+                ...item,
+                round_id: round.id,
+                user_id: userId,
+                source_round_name: sourceRound.name,
+              })),
+            );
+          }
+        }
+
+        return { ...round, carried_sacks: carriedSacks };
+      });
     } catch (error) {
       if (
         typeof error === 'object' &&
@@ -84,7 +159,7 @@ export class RoundsService {
 
   async getReport(userId: string, roundId: string) {
     const round = await this.findRound(userId, roundId);
-    const [procurements, production, saleRows, expenseRows] = await Promise.all([
+    const [procurements, production, saleRows, expenseRows, openingSacks, costRows] = await Promise.all([
       this.db.query.procurementOrders.findMany({
         where: and(eq(procurementOrders.user_id, userId), eq(procurementOrders.round_id, roundId)),
         orderBy: asc(procurementOrders.delivery_date),
@@ -101,6 +176,14 @@ export class RoundsService {
         where: and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId)),
         orderBy: asc(expenses.date),
       }),
+      this.db.query.roundSackOpeningBalances.findMany({
+        where: and(eq(roundSackOpeningBalances.user_id, userId), eq(roundSackOpeningBalances.round_id, roundId)),
+        orderBy: asc(roundSackOpeningBalances.sack_size),
+      }),
+      this.db.query.operationalCosts.findMany({
+        where: and(eq(operationalCosts.user_id, userId), eq(operationalCosts.round_id, roundId)),
+        orderBy: asc(operationalCosts.date),
+      }),
     ]);
 
     return {
@@ -111,6 +194,8 @@ export class RoundsService {
         csvSection('Production', production),
         csvSection('Sales', saleRows),
         csvSection('Expenses', expenseRows),
+        csvSection('Opening Sack Balances', openingSacks),
+        csvSection('Operational Costs', costRows),
       ].join('\n'),
     };
   }
@@ -158,6 +243,12 @@ export class RoundsService {
       await tx
         .delete(expenses)
         .where(and(eq(expenses.round_id, roundId), eq(expenses.user_id, userId)));
+      await tx
+        .delete(operationalCosts)
+        .where(and(eq(operationalCosts.round_id, roundId), eq(operationalCosts.user_id, userId)));
+      await tx
+        .delete(roundSackOpeningBalances)
+        .where(and(eq(roundSackOpeningBalances.round_id, roundId), eq(roundSackOpeningBalances.user_id, userId)));
       await tx
         .delete(operationRounds)
         .where(and(eq(operationRounds.id, roundId), eq(operationRounds.user_id, userId)));

@@ -73,7 +73,9 @@ const ExpenseForm = ({
           <RenderUnitInput formData={formData} handleChange={handleChange} />
 
           {!['sacks', 'water'].includes(formData.category.toLowerCase()) && <div>
-            <label className={labelClass}>Total Amount (TSh)</label>
+            <label className={labelClass}>
+              {formData.category.toLowerCase() === 'electricity' ? 'Electricity Purchase Amount (TSh)' : 'Total Amount (TSh)'}
+            </label>
             <input
               type="number"
               step="1"

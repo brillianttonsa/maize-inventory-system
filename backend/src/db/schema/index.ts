@@ -215,6 +215,48 @@ export const expenses = pgTable('expenses', {
     name: 'expenses_round_user_fk',
   }).onDelete('restrict'),
 ],);
+
+export const roundSackOpeningBalances = pgTable('round_sack_opening_balances', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  user_id: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  round_id: uuid('round_id').notNull(),
+  source_round_name: varchar('source_round_name', { length: 100 }).notNull(),
+  sack_size: integer('sack_size').notNull(),
+  quantity: integer('quantity').notNull(),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+}, (table) => [
+  foreignKey({
+    columns: [table.round_id, table.user_id],
+    foreignColumns: [operationRounds.id, operationRounds.user_id],
+    name: 'round_sack_opening_balances_round_user_fk',
+  }).onDelete('restrict'),
+  unique('round_sack_opening_balances_round_size_unique').on(table.round_id, table.sack_size),
+]);
+
+export const operationalCosts = pgTable('operational_costs', {
+  id: uuid('id').defaultRandom().primaryKey(),
+  user_id: uuid('user_id')
+    .notNull()
+    .references(() => users.id, { onDelete: 'cascade' }),
+  round_id: uuid('round_id').notNull(),
+  date: date('date').notNull(),
+  operation: varchar('operation', { length: 255 }).notNull(),
+  starting_units: numeric('starting_units', { precision: 12, scale: 2 }).notNull(),
+  remaining_units: numeric('remaining_units', { precision: 12, scale: 2 }).notNull(),
+  units_used: numeric('units_used', { precision: 12, scale: 2 }).notNull(),
+  total_amount: numeric('total_amount', { precision: 12, scale: 2 }).notNull(),
+  notes: text('notes'),
+  created_at: timestamp('created_at').defaultNow().notNull(),
+  updated_at: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => [
+  foreignKey({
+    columns: [table.round_id, table.user_id],
+    foreignColumns: [operationRounds.id, operationRounds.user_id],
+    name: 'operational_costs_round_user_fk',
+  }).onDelete('restrict'),
+]);
  
 
 // ========================================
@@ -241,6 +283,7 @@ export type ProcurementOrder = typeof procurementOrders.$inferSelect;
 export type ProductionBatch = typeof productionBatches.$inferSelect;
 export type Sale = typeof sales.$inferSelect;
 export type Expense = typeof expenses.$inferSelect;
+export type OperationalCost = typeof operationalCosts.$inferSelect;
 export type Contact = typeof contacts.$inferSelect;
  
 // INSERT TYPES (data going INTO database)
@@ -251,4 +294,5 @@ export type NewProcurementOrder = typeof procurementOrders.$inferInsert;
 export type NewProductionBatch = typeof productionBatches.$inferInsert;
 export type NewSale = typeof sales.$inferInsert;
 export type NewExpense = typeof expenses.$inferInsert;
+export type NewOperationalCost = typeof operationalCosts.$inferInsert;
 export type NewContact = typeof contacts.$inferInsert;

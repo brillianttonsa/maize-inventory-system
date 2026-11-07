@@ -1,7 +1,12 @@
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { and, asc, count, eq, gte, lte, sql } from 'drizzle-orm';
 import { DB_PROVIDER, type DbClient } from '../../db/db.module';
-import { expenses, procurementOrders, productionBatches } from '../../db/schema';
+import {
+  expenses,
+  procurementOrders,
+  productionBatches,
+  roundSackOpeningBalances,
+} from '../../db/schema';
 import { getActiveRoundId } from '../../common/rounds';
 import {
   getPagination,
@@ -179,11 +184,16 @@ export class ProductionService {
     if (procuredKg <= 0) throw new BadRequestException('Record a maize procurement before recording production.');
     const usedKg = relevant.reduce((sum, batch) => sum + Number(batch.maize_quantity), 0);
     if (requestedMaizeKg > procuredKg - usedKg) throw new BadRequestException(`Only ${Math.max(0, procuredKg - usedKg).toLocaleString()} kg of maize is available for production.`);
-    const sackPurchases = await this.db.select({ size: expenses.sack_size, quantity: sql<string>`coalesce(sum(${expenses.unit_value}), 0)::text` }).from(expenses).where(and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId), sql`lower(${expenses.category}) = 'sacks'`)).groupBy(expenses.sack_size);
+    const [sackPurchases, openingSacks] = await Promise.all([
+      this.db.select({ size: expenses.sack_size, quantity: sql<string>`coalesce(sum(${expenses.unit_value}), 0)::text` }).from(expenses).where(and(eq(expenses.user_id, userId), eq(expenses.round_id, roundId), sql`lower(${expenses.category}) = 'sacks'`)).groupBy(expenses.sack_size),
+      this.db.select({ size: roundSackOpeningBalances.sack_size, quantity: sql<string>`coalesce(sum(${roundSackOpeningBalances.quantity}), 0)::text` }).from(roundSackOpeningBalances).where(and(eq(roundSackOpeningBalances.user_id, userId), eq(roundSackOpeningBalances.round_id, roundId))).groupBy(roundSackOpeningBalances.sack_size),
+    ]);
     for (const size of [5, 10, 25] as const) {
       const purchased = Number(sackPurchases.find(item => item.size === size)?.quantity ?? 0);
+      const broughtForward = Number(openingSacks.find(item => item.size === size)?.quantity ?? 0);
       const used = relevant.reduce((sum, batch) => sum + Number(batch[`flour_sacks_${size}kg`]), 0);
-      if (requestedSacks[size] > purchased - used) throw new BadRequestException(`Only ${Math.max(0, purchased - used)} unused ${size} kg sacks are available. Record the sack purchase in Expenses first.`);
+      const available = broughtForward + purchased - used;
+      if (requestedSacks[size] > available) throw new BadRequestException(`Only ${Math.max(0, available)} unused ${size} kg sacks are available, including round carry-over. Record the sack purchase in Expenses first if needed.`);
     }
   }
 
