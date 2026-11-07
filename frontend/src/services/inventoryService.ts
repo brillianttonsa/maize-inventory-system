@@ -17,6 +17,7 @@ export interface DashboardSummary {
     sacks5kg: number;
     sacks10kg: number;
     sacks25kg: number;
+    electricityUnits: number;
   };
   sackProductionBalances: Array<{
     size: 5 | 10 | 25;
